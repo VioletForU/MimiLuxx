@@ -23,7 +23,7 @@ export default function NewTaskPage() {
         description,
         status,
         due_date: dueDate,
-      }),
+      }), 
     });
 
     const result = await res.json();
