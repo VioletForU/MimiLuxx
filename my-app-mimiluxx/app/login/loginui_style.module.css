@@ -1,0 +1,200 @@
+.pageContainer {
+  /* Set light grey wireframe background */
+  background-color: #d1d5db;
+  color: #1f2937;
+
+  /* Full screen coverage */
+  min-height: 100vh;
+  width: 100%;
+
+  /* Centering & layout */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 3rem;
+  padding: 3rem 4rem;
+  box-sizing: border-box;
+}
+
+.leftSection {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3.5rem 2rem 2.5rem 1rem;
+}
+
+.heroText .subheading {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #4b5563;
+  display: block;
+}
+
+.heroText .mainHeading {
+  font-size: clamp(5.5rem, 12vw, 8.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  color: #000000;
+  letter-spacing: -0.04em;
+  margin-top: 0.25rem;
+}
+
+.signupCta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-right: 2.5rem;
+  gap: 0.6rem;
+}
+
+.signupCta .ctaLabel {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.btnPill {
+  background-color: #8b8f95;
+  color: #ffffff;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.rightSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 440px;
+}
+
+.brandTitle {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #050505;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.inputGroup label {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #52575f;
+}
+
+.inputGroup input {
+  width: 100%;
+  height: 52px;
+  background-color: #888d92;
+  border: none;
+  border-radius: 12px;
+  padding: 0 1rem;
+  font-size: 1rem;
+  color: #ffffff;
+  outline: none;
+}
+
+.btnSubmit {
+  width: 100%;
+  height: 50px;
+  margin-top: 0.25rem;
+  background-color: #888d92;
+  color: #f3f4f6;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.forgotWrapper {
+  text-align: center;
+}
+
+.forgotLink {
+  font-size: 0.9rem;
+  color: #5f6368;
+  text-decoration: none;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1.5px solid #777b80;
+}
+
+.divider span {
+  padding: 0 0.85rem;
+  color: #4b5563;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.socialLoginGroup {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.socialBtn {
+  flex: 1;
+  height: 48px;
+  background-color: #888d92;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .pageContainer {
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .leftSection {
+    padding: 1rem;
+    align-items: center;
+    text-align: center;
+  }
+
+  .signupCta {
+    align-items: center;
+    padding-right: 0;
+  }
+
+  .rightSection {
+    width: 100%;
+  }
+}
