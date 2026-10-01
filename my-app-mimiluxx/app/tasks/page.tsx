@@ -43,6 +43,9 @@ export default async function TasksPage() {
               Status: {task.status}
               {task.due_date && ` · Due: ${task.due_date}`}
             </p>
+            <Link href={`/tasks/${task.id}/edit`} className="text-sm underline">
+            Edit
+            </Link> 
           </li>
         ))}
       </ul>
