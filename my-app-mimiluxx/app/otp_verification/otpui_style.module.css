@@ -1,0 +1,141 @@
+/* ===================================================
+   Page Container (Outer Gray Canvas)
+=================================================== */
+.pageContainer {
+  background-color: #d1d5db; /* Matches wireframe outer background */
+  color: #1f2937;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* ===================================================
+   Center Modal Card
+=================================================== */
+.card {
+  background-color: #a8a8a8; /* Darker square background card */
+  width: 100%;
+  max-width: 500px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2.5rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* Titles */
+.title {
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #000000;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.description {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #27272a;
+  max-width: 320px;
+  line-height: 1.4;
+  margin-bottom: 2.5rem;
+}
+
+/* ===================================================
+   6-Digit OTP Inputs
+=================================================== */
+.otpGroup {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 2.25rem;
+}
+
+.otpInput {
+  width: 48px;
+  height: 64px;
+  background-color: #d4d4d4; /* Light wireframe box tint */
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #18181b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otpInput:focus {
+  background-color: #e5e5e5;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ===================================================
+   Verify Action Button
+=================================================== */
+.btnVerify {
+  background-color: #7b7e82;
+  color: #ffffff;
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.75rem 2.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnVerify:hover {
+  background-color: #65686c;
+  transform: translateY(-1px);
+}
+
+/* ===================================================
+   Resend Link Footer
+=================================================== */
+.resendWrapper {
+  margin-top: 3.5rem;
+}
+
+.resendLink {
+  color: #e4e4e7;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.resendLink:hover {
+  color: #ffffff;
+}
+
+/* ===================================================
+   Responsive Fix for Small Screens
+=================================================== */
+@media (max-width: 480px) {
+  .card {
+    padding: 2.5rem 1.25rem 2rem;
+  }
+
+  .otpGroup {
+    gap: 0.4rem;
+  }
+
+  .otpInput {
+    width: 38px;
+    height: 52px;
+    font-size: 1.35rem;
+  }
+}
