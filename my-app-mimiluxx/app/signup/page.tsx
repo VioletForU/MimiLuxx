@@ -29,34 +29,24 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: fullName,
+          username: username,
+        },
+      },
     });
+
+    setLoading(false);
 
     if (signUpError) {
       setError(signUpError.message);
-      setLoading(false);
       return;
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        email: data.user.email,
-        full_name: fullName,
-        username: username,
-        role: "Member",
-      });
-
-      if (profileError) {
-        setError(profileError.message);
-        setLoading(false);
-        return;
-      }
-    }
-
-    setLoading(false);
     setSent(true);
   }
 
