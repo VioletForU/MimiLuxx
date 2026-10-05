@@ -1,5 +1,14 @@
 ﻿import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getTaskPriority } from "@/lib/priority";
+
+const BADGE_STYLES: Record<string, string> = {
+  "Overdue": "bg-red-100 text-red-700",
+  "Due Today": "bg-orange-100 text-orange-700",
+  "Due Soon": "bg-yellow-100 text-yellow-700",
+  "Upcoming": "bg-blue-100 text-blue-700",
+  "No Deadline": "bg-gray-100 text-gray-600",
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -16,14 +25,17 @@ export default async function DashboardPage() {
     );
   }
 
-  // Sorted by deadline: earliest due date first. Tasks with no due date
-  // go last (nullsFirst: false), since they're not time-pressured yet.
   const { data: tasks, error } = await supabase
     .from("tasks")
     .select("*")
     .eq("user_id", user.id)
-    .neq("status", "done")
-    .order("due_date", { ascending: true, nullsFirst: false });
+    .neq("status", "done");
+
+  // Compute priority score per task, then sort by score descending
+  // (most urgent first) — this replaces the plain date sort from before.
+  const rankedTasks = (tasks ?? [])
+    .map((task) => ({ ...task, priority: getTaskPriority(task.due_date) }))
+    .sort((a, b) => b.priority.score - a.priority.score);
 
   return (
     <main className="mx-auto max-w-2xl p-6">
@@ -35,17 +47,23 @@ export default async function DashboardPage() {
       </div>
 
       {error && <p>Could not load tasks: {error.message}</p>}
-      {tasks && tasks.length === 0 && <p>Nothing due — you're all caught up.</p>}
+      {rankedTasks.length === 0 && <p>Nothing due — you're all caught up.</p>}
 
       <ul className="flex flex-col gap-3">
-        {tasks?.map((task) => (
+        {rankedTasks.map((task) => (
           <li key={task.id} className="rounded border p-3">
-            <p className="font-semibold">{task.title}</p>
+            <div className="flex items-center justify-between">
+              <p className="font-semibold">{task.title}</p>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${BADGE_STYLES[task.priority.label]}`}
+              >
+                {task.priority.label}
+              </span>
+            </div>
             {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
             <p className="text-sm">
               Status: {task.status}
               {task.due_date && ` · Due: ${task.due_date}`}
-              {!task.due_date && " · No due date"}
             </p>
             <Link href={`/tasks/${task.id}/edit`} className="text-sm underline">
               Edit
