@@ -1,4 +1,6 @@
-// components/LandingPage.tsx
+﻿// components/LandingPage.tsx
+import Link from "next/link";
+
 export default function LandingPage() {
   const navLinks = ["features", "projects", "events", "resources"];
 
@@ -34,9 +36,11 @@ export default function LandingPage() {
         </p>
 
         {/* 3. Group: Action Button */}
-        <button className="mt-12 px-14 py-5 bg-[#595959] hover:bg-[#4a4a4a] text-white text-2xl font-bold rounded-[35px] shadow-sm transition-colors">
-          Hop in!
-        </button>
+        <Link href="/login">
+          <button className="mt-12 px-14 py-5 bg-[#595959] hover:bg-[#4a4a4a] text-white text-2xl font-bold rounded-[35px] shadow-sm transition-colors">
+            Hop in!
+          </button>
+        </Link>
       </main>
     </div>
   );
