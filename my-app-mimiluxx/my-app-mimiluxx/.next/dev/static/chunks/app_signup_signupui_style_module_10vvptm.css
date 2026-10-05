@@ -1,0 +1,210 @@
+/* [project]/app/signup/signupui_style.module.css [app-client] (css) */
+.signupui_style-module__7oONKq__pageContainer {
+  color: #1f2937;
+  box-sizing: border-box;
+  background-color: #d1d5db;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 2.5rem 2rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__contentWrapper {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 3.5rem;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 640px;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__leftSection {
+  flex: 1;
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__signupCard {
+  width: 100%;
+  max-width: 440px;
+}
+
+.signupui_style-module__7oONKq__brandTitle {
+  color: #050505;
+  letter-spacing: -.03em;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 2.75rem;
+  font-weight: 800;
+}
+
+.signupui_style-module__7oONKq__signupForm {
+  flex-direction: column;
+  gap: 1.1rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__inputGroup {
+  flex-direction: column;
+  gap: .35rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__inputGroup label {
+  color: #52575f;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.signupui_style-module__7oONKq__inputGroup input {
+  color: #fff;
+  background-color: #888d92;
+  border: none;
+  border-radius: 12px;
+  outline: none;
+  width: 100%;
+  height: 48px;
+  padding: 0 1rem;
+  font-size: 1rem;
+  transition: all .2s;
+}
+
+.signupui_style-module__7oONKq__inputGroup input:focus {
+  background-color: #797d82;
+  box-shadow: 0 0 0 3px #00000026;
+}
+
+.signupui_style-module__7oONKq__btnSubmit {
+  color: #f3f4f6;
+  cursor: pointer;
+  background-color: #888d92;
+  border: none;
+  border-radius: 12px;
+  width: 100%;
+  height: 50px;
+  margin-top: .5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  transition: all .2s;
+}
+
+.signupui_style-module__7oONKq__btnSubmit:hover {
+  background-color: #75797e;
+  transform: translateY(-1px);
+}
+
+.signupui_style-module__7oONKq__checkboxArea {
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: .3rem;
+  padding-left: .25rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__checkboxLabel {
+  color: #4b5563;
+  cursor: pointer;
+  align-items: center;
+  gap: .6rem;
+  font-size: .85rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__checkboxLabel input[type="checkbox"] {
+  accent-color: #52575f;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.signupui_style-module__7oONKq__checkboxLabel strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.signupui_style-module__7oONKq__rightSection {
+  flex-direction: column;
+  flex: 1.1;
+  justify-content: space-between;
+  padding: 3.5rem 1rem 1.5rem 2rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__heroText .signupui_style-module__7oONKq__subheading {
+  color: #4b5563;
+  letter-spacing: -.02em;
+  font-size: 1.85rem;
+  font-weight: 700;
+  display: block;
+}
+
+.signupui_style-module__7oONKq__heroText .signupui_style-module__7oONKq__mainHeading {
+  color: #000;
+  letter-spacing: -.04em;
+  margin-top: .25rem;
+  font-size: clamp(4.8rem, 10.5vw, 7.8rem);
+  font-weight: 900;
+  line-height: .95;
+}
+
+.signupui_style-module__7oONKq__loginCta {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .6rem;
+  display: flex;
+}
+
+.signupui_style-module__7oONKq__ctaLabel {
+  color: #6b7280;
+  font-size: .92rem;
+  font-weight: 500;
+}
+
+.signupui_style-module__7oONKq__btnPill {
+  color: #fff;
+  cursor: pointer;
+  background-color: #8b8f95;
+  border: none;
+  border-radius: 9999px;
+  padding: .65rem 1.75rem;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: all .2s;
+  box-shadow: 0 2px 4px #00000014;
+}
+
+.signupui_style-module__7oONKq__btnPill:hover {
+  background-color: #71757b;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+  .signupui_style-module__7oONKq__contentWrapper {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .signupui_style-module__7oONKq__leftSection {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .signupui_style-module__7oONKq__rightSection {
+    text-align: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  .signupui_style-module__7oONKq__loginCta {
+    align-items: center;
+  }
+}
+
+/*# sourceMappingURL=app_signup_signupui_style_module_10vvptm.css.map*/

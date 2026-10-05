@@ -1,0 +1,197 @@
+/* [project]/app/login/loginui_style.module.css [app-client] (css) */
+.loginui_style-module__YpJwWq__pageContainer {
+  color: #1f2937;
+  box-sizing: border-box;
+  background-color: #d1d5db;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 3rem;
+  width: 100%;
+  min-height: 100vh;
+  padding: 3rem 4rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__leftSection {
+  flex-direction: column;
+  flex: 1.1;
+  justify-content: space-between;
+  padding: 3.5rem 2rem 2.5rem 1rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__heroText .loginui_style-module__YpJwWq__subheading {
+  color: #4b5563;
+  font-size: 1.85rem;
+  font-weight: 700;
+  display: block;
+}
+
+.loginui_style-module__YpJwWq__heroText .loginui_style-module__YpJwWq__mainHeading {
+  color: #000;
+  letter-spacing: -.04em;
+  margin-top: .25rem;
+  font-size: clamp(5.5rem, 12vw, 8.5rem);
+  font-weight: 900;
+  line-height: .95;
+}
+
+.loginui_style-module__YpJwWq__signupCta {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .6rem;
+  padding-right: 2.5rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__signupCta .loginui_style-module__YpJwWq__ctaLabel {
+  color: #6b7280;
+  font-size: .95rem;
+  font-weight: 500;
+}
+
+.loginui_style-module__YpJwWq__btnPill {
+  color: #fff;
+  cursor: pointer;
+  background-color: #8b8f95;
+  border: none;
+  border-radius: 9999px;
+  padding: .65rem 1.75rem;
+  font-size: .9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px #00000014;
+}
+
+.loginui_style-module__YpJwWq__rightSection {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__loginCard {
+  width: 100%;
+  max-width: 440px;
+}
+
+.loginui_style-module__YpJwWq__brandTitle {
+  color: #050505;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.75rem;
+  font-weight: 800;
+}
+
+.loginui_style-module__YpJwWq__loginForm {
+  flex-direction: column;
+  gap: 1.25rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__inputGroup {
+  flex-direction: column;
+  gap: .45rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__inputGroup label {
+  color: #52575f;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.loginui_style-module__YpJwWq__inputGroup input {
+  color: #fff;
+  background-color: #888d92;
+  border: none;
+  border-radius: 12px;
+  outline: none;
+  width: 100%;
+  height: 52px;
+  padding: 0 1rem;
+  font-size: 1rem;
+}
+
+.loginui_style-module__YpJwWq__btnSubmit {
+  color: #f3f4f6;
+  cursor: pointer;
+  background-color: #888d92;
+  border: none;
+  border-radius: 12px;
+  width: 100%;
+  height: 50px;
+  margin-top: .25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.loginui_style-module__YpJwWq__forgotWrapper {
+  text-align: center;
+}
+
+.loginui_style-module__YpJwWq__forgotLink {
+  color: #5f6368;
+  font-size: .9rem;
+  text-decoration: none;
+}
+
+.loginui_style-module__YpJwWq__divider {
+  text-align: center;
+  align-items: center;
+  margin: .75rem 0 .5rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__divider:before, .loginui_style-module__YpJwWq__divider:after {
+  content: "";
+  border-bottom: 1.5px solid #777b80;
+  flex: 1;
+}
+
+.loginui_style-module__YpJwWq__divider span {
+  color: #4b5563;
+  white-space: nowrap;
+  padding: 0 .85rem;
+  font-size: .85rem;
+}
+
+.loginui_style-module__YpJwWq__socialLoginGroup {
+  justify-content: space-between;
+  gap: 1rem;
+  display: flex;
+}
+
+.loginui_style-module__YpJwWq__socialBtn {
+  cursor: pointer;
+  background-color: #888d92;
+  border: none;
+  border-radius: 10px;
+  flex: 1;
+  height: 48px;
+}
+
+@media (max-width: 860px) {
+  .loginui_style-module__YpJwWq__pageContainer {
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .loginui_style-module__YpJwWq__leftSection {
+    text-align: center;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .loginui_style-module__YpJwWq__signupCta {
+    align-items: center;
+    padding-right: 0;
+  }
+
+  .loginui_style-module__YpJwWq__rightSection {
+    width: 100%;
+  }
+}
+
+/*# sourceMappingURL=app_login_loginui_style_module_0ie_jj4.css.map*/
