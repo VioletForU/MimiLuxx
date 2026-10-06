@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 type Params = { params: Promise<{ id: string }> };
 
+const VALID_STATUSES = ["todo", "in_progress", "done", "blocked"];
+
 export async function GET(_request: Request, { params }: Params) {
   const { id } = await params;
   const supabase = await createClient();
@@ -64,6 +66,46 @@ export async function PUT(request: Request, { params }: Params) {
 
   if (error || !data) {
     return NextResponse.json({ error: "Could not update task" }, { status: 500 });
+  }
+
+  return NextResponse.json({ task: data });
+}
+
+export async function PATCH(request: Request, { params }: Params) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const status = body.status;
+
+  if (!VALID_STATUSES.includes(status)) {
+    return NextResponse.json(
+      { error: `Status must be one of: ${VALID_STATUSES.join(", ")}` },
+      { status: 400 }
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return NextResponse.json({ error: "Could not update status" }, { status: 500 });
   }
 
   return NextResponse.json({ task: data });
