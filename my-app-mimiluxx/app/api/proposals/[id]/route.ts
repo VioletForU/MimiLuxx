@@ -97,6 +97,24 @@ export async function PATCH(request: Request, { params }: Params) {
     );
   }
 
+  // RBAC guard: only the user whose role matches this stage's assigned
+  // signatory role can act on it — a Committee Lead can't approve the
+  // Exec Approver stage, and vice versa.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== targetStage.approver_role) {
+    return NextResponse.json(
+      {
+        error: `Only a ${targetStage.approver_role} can act on this stage. You are a ${profile?.role ?? "Member"}.`,
+      },
+      { status: 403 }
+    );
+  }
+
   const newStatus = action === "approve" ? "approved" : "rejected";
 
   const { error: updateStageError } = await supabase
@@ -112,9 +130,6 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: updateStageError.message }, { status: 500 });
   }
 
-  // Rejecting any stage immediately rejects the whole proposal.
-  // Approving advances to the next stage, or marks the proposal fully
-  // approved if this was the last one.
   if (action === "reject") {
     await supabase.from("proposals").update({ status: "rejected" }).eq("id", id);
   } else {
