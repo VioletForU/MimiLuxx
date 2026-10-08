@@ -1,4 +1,4 @@
-import type { ApprovalStage, Proposal } from "@/lib/types/proposal";
+﻿import type { ApprovalStage, Proposal } from "@/lib/types/proposal";
 
 export type StageWithRouting = ApprovalStage & {
   isActive: boolean;
@@ -18,7 +18,13 @@ export function routeStages(
   stages: ApprovalStage[]
 ): StageWithRouting[] {
   const sorted = [...stages].sort((a, b) => a.stage_order - b.stage_order);
-  const activeIndex = sorted.findIndex((s) => s.status === "pending");
+
+  // Only a still-pending proposal has an active stage. Once it's rejected
+  // or fully approved, nothing should be actionable anymore.
+  const activeIndex =
+    proposal.status === "pending"
+      ? sorted.findIndex((s) => s.status === "pending")
+      : -1;
 
   return sorted.map((stage, index) => ({
     ...stage,
