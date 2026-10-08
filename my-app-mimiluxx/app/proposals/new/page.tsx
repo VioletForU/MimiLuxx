@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ export default function NewProposalPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/dashboard?tab=proposals");
   }
 
   return (
@@ -62,3 +62,4 @@ export default function NewProposalPage() {
     </main>
   );
 }
+
