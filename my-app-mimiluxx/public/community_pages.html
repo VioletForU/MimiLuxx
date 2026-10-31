@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MimiLuxx Community | Choose Org</title>
+
+  <!-- Tailwind CSS (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: { brand: '#ff0000', ink: '#050608' },
+        },
+      },
+    };
+  </script>
+
+  <!-- Custom CSS: animations, carousel geometry, card styling -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="bg-white font-sans text-ink antialiased">
+
+  <!-- ===================== PAGE WRAPPER ===================== -->
+  <div class="relative h-screen min-w-[1024px] overflow-hidden">
+
+    <!-- ===================== HEADER / LOGO ===================== -->
+    <header class="anim-logo flex flex-col items-center pt-[clamp(1.5rem,5vh,3.5rem)] text-center select-none">
+      <h1 class="text-[clamp(28px,2.6vw,42px)] font-black leading-none tracking-tight">
+        <span class="text-ink">Mimi</span><span class="text-brand">Luxx</span>
+      </h1>
+      <p class="mt-1 text-[clamp(14px,1.2vw,20px)] font-semibold">Community</p>
+    </header>
+
+    <!-- ===================== ORG CAROUSEL ===================== -->
+    <main class="relative mt-[clamp(0.5rem,3vh,2.5rem)]">
+      <section class="relative" aria-label="Choose an organization" aria-roledescription="carousel">
+
+        <!-- Previous -->
+        <button
+          id="prevBtn"
+          type="button"
+          aria-label="Previous organization"
+          class="carousel-arrow absolute left-[clamp(1rem,3vw,3rem)] top-[62%] z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(0,0,0,0.25)]"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <!-- Scroll track -->
+        <div id="orgTrack" class="carousel-track" tabindex="-1">
+
+          <!-- Card 1 -->
+          <div class="carousel-slot anim-card" style="--i:0">
+            <a href="#" class="org-card" aria-label="Umamusume">
+              <img class="org-card__art" src="assets/umamusume.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Umamusume</span>
+            </a>
+          </div>
+
+          <!-- Card 2 (starts centred) -->
+          <div class="carousel-slot anim-card" style="--i:1">
+            <a href="#" class="org-card" aria-label="Roblox Cebu">
+              <img class="org-card__art" src="assets/roblox-cebu.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Roblox Cebu</span>
+            </a>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="carousel-slot anim-card" style="--i:2">
+            <a href="#" class="org-card" aria-label="Wuwa">
+              <img class="org-card__art" src="assets/wuwa.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Wuwa</span>
+            </a>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="carousel-slot anim-card" style="--i:3">
+            <a href="#" class="org-card" aria-label="Genshin Impact">
+              <img class="org-card__art" src="assets/genshin.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Genshin Impact</span>
+            </a>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="carousel-slot anim-card" style="--i:4">
+            <a href="#" class="org-card" aria-label="Honkai Star Rail">
+              <img class="org-card__art" src="assets/honkai.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Honkai Star Rail</span>
+            </a>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="carousel-slot anim-card" style="--i:5">
+            <a href="#" class="org-card" aria-label="Zenless Zone Zero">
+              <img class="org-card__art" src="assets/zzz.png" alt=""
+                   onerror="this.onerror=null;this.src=window.FALLBACK_ART" />
+              <span class="org-card__name">Zenless Zone Zero</span>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Next -->
+        <button
+          id="nextBtn"
+          type="button"
+          aria-label="Next organization"
+          class="carousel-arrow absolute right-[clamp(1rem,3vw,3rem)] top-[62%] z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(0,0,0,0.25)]"
+        >
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </section>
+    </main>
+
+    <!-- ===================== BOTTOM NAVIGATION BAR ===================== -->
+    <div class="pointer-events-none fixed inset-x-0 bottom-[clamp(1rem,4vh,2.5rem)] z-40 flex justify-center">
+      <nav
+        class="anim-nav pointer-events-auto flex items-center gap-[clamp(14px,1.8vw,28px)] rounded-md bg-white px-[clamp(10px,1vw,16px)] py-3 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+        aria-label="Primary"
+      >
+        <!-- Avatar -->
+        <button type="button" class="h-[clamp(36px,3.2vw,46px)] w-[clamp(36px,3.2vw,46px)] rounded-full bg-[#9a9a9a]" aria-label="Profile"></button>
+
+        <a href="#" aria-label="Home" class="text-brand text-2xl transition hover:scale-125"><i class="fa-solid fa-house"></i></a>
+        <a href="#" aria-label="Org Page" class="text-ink text-2xl transition hover:scale-125"><i class="fa-solid fa-building-columns"></i></a>
+        <a href="#" aria-label="Task Page" class="text-ink text-2xl transition hover:scale-125"><i class="fa-solid fa-clipboard-list"></i></a>
+        <a href="#" aria-label="Settings" class="text-brand text-2xl transition hover:scale-125"><i class="fa-solid fa-toggle-on"></i></a>
+        <a href="#" aria-label="Account" class="text-ink text-2xl transition hover:scale-125"><i class="fa-solid fa-user"></i></a>
+
+        <span class="w-3" aria-hidden="true"></span>
+
+        <a href="#" aria-label="Logout" class="text-brand text-xl transition hover:scale-125"><i class="fa-solid fa-door-open"></i></a>
+      </nav>
+    </div>
+
+    <!-- ===================== MASCOT (bottom-right) ===================== -->
+    <div class="anim-mascot pointer-events-none fixed bottom-[clamp(0.5rem,2vh,1.5rem)] right-[clamp(1rem,2vw,2.5rem)] z-20 w-[clamp(90px,10vw,160px)]" aria-hidden="true">
+      <svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg" class="h-auto w-full">
+        <!-- Cat head -->
+        <path d="M6 6 L30 20 Q46 14 62 20 L86 6 L88 42 Q90 66 46 66 Q4 66 6 42 Z" fill="#ff1a1a" />
+        <circle cx="30" cy="42" r="3.5" fill="#050608" />
+        <circle cx="62" cy="42" r="3.5" fill="#050608" />
+        <!-- Letter "m" + tail -->
+        <text x="58" y="104" font-family="Inter, sans-serif" font-weight="900" font-size="78" fill="#050608">m</text>
+        <path d="M136 80 C146 70 158 74 156 86" fill="none" stroke="#050608" stroke-width="8" stroke-linecap="round" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===================== INTERACTIONS ===================== -->
+  <script>
+    /* Fallback silhouette shown if an image in /assets is missing */
+    window.FALLBACK_ART =
+      "data:image/svg+xml;utf8," +
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'>" +
+      "<g fill='%23ffffff' fill-opacity='.85'>" +
+      "<circle cx='100' cy='72' r='42'/>" +
+      "<path d='M28 300c0-84 32-152 72-152s72 68 72 152z'/>" +
+      "</g></svg>";
+
+    (() => {
+      const track  = document.getElementById('orgTrack');
+      const slots  = Array.from(track.querySelectorAll('.carousel-slot'));
+      const prev   = document.getElementById('prevBtn');
+      const next   = document.getElementById('nextBtn');
+
+      const START_INDEX = 1;      // "Roblox Cebu" begins centred
+      const MIN_SCALE   = 0.54;   // scale of cards furthest from centre
+      const AUTO_SPEED  = 240;    // px per second while hovering the track
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let active = START_INDEX;
+      let ticking = false;
+
+      /* ---- Scale cards by distance from centre; track the active one ---- */
+      function update() {
+        ticking = false;
+        const centre = track.scrollLeft + track.clientWidth / 2;
+        let best = 0;
+        let bestDist = Infinity;
+
+        slots.forEach((slot, i) => {
+          const slotCentre = slot.offsetLeft + slot.offsetWidth / 2;
+          const d = Math.abs(slotCentre - centre) / slot.offsetWidth;
+          const s = 1 - Math.min(d, 1) * (1 - MIN_SCALE);
+          slot.style.setProperty('--s', s.toFixed(3));
+          slot.style.zIndex = String(Math.round(s * 10));
+          if (d < bestDist) { bestDist = d; best = i; }
+        });
+
+        active = best;
+        prev.disabled = active === 0;
+        next.disabled = active === slots.length - 1;
+      }
+
+      function requestUpdate() {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      }
+
+      /* ---- Manual navigation ---- */
+      function targetLeft(i) {
+        const slot = slots[i];
+        return slot.offsetLeft + slot.offsetWidth / 2 - track.clientWidth / 2;
+      }
+
+      function goTo(i, behavior = 'smooth') {
+        const index = Math.max(0, Math.min(slots.length - 1, i));
+        track.scrollTo({ left: targetLeft(index), behavior });
+      }
+
+      prev.addEventListener('click', () => goTo(active - 1));
+      next.addEventListener('click', () => goTo(active + 1));
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') goTo(active + 1);
+        if (e.key === 'ArrowLeft')  goTo(active - 1);
+      });
+
+      /* ---- Hover auto-scroll (left → right) ---- */
+      let rafId = 0;
+      let running = false;
+      let paused = false;     // set when the user takes manual control
+      let lastTime = 0;
+      let pos = 0;
+
+      function step(now) {
+        if (!running) return;
+        const dt = Math.min(now - lastTime, 50) / 1000;
+        lastTime = now;
+
+        const max = track.scrollWidth - track.clientWidth;
+        pos = Math.min(max, pos + AUTO_SPEED * dt);
+        track.scrollLeft = pos;
+
+        if (pos >= max) { stopAuto(false); return; }
+        rafId = requestAnimationFrame(step);
+      }
+
+      function startAuto() {
+        if (reduceMotion || running || paused) return;
+        running = true;
+        track.classList.add('is-auto');
+        pos = track.scrollLeft;
+        lastTime = performance.now();
+        rafId = requestAnimationFrame(step);
+      }
+
+      function stopAuto(settle = true) {
+        if (!running) return;
+        running = false;
+        cancelAnimationFrame(rafId);
+        track.classList.remove('is-auto');
+        if (settle) requestAnimationFrame(() => goTo(active)); // glide to nearest card
+      }
+
+      track.addEventListener('mouseenter', () => { paused = false; startAuto(); });
+      track.addEventListener('mouseleave', () => stopAuto());
+
+      // Any direct manual input takes over until the pointer re-enters
+      ['wheel', 'pointerdown', 'touchstart'].forEach((evt) =>
+        track.addEventListener(evt, () => { paused = true; stopAuto(false); }, { passive: true })
+      );
+
+      /* ---- Init ---- */
+      track.addEventListener('scroll', requestUpdate, { passive: true });
+
+      function init() {
+        goTo(START_INDEX, 'instant');
+        update();
+      }
+
+      window.addEventListener('load', init);
+      window.addEventListener('resize', () => { goTo(active, 'instant'); update(); });
+      init();
+    })();
+  </script>
+</body>
+</html>
