@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MimiLuxx Community | Task Management</title>
+
+  <!-- Tailwind CSS (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: { brand: '#ff0000', ink: '#050608' },
+        },
+      },
+    };
+  </script>
+
+  <!-- Tone tokens, keyframes, scrollbars -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="min-h-screen bg-white font-sans text-ink antialiased">
+  <div class="min-h-screen pb-32">
+
+    <!-- ===================== BRAND HEADER ===================== -->
+    <header class="reveal flex select-none flex-col items-center pt-[clamp(1.25rem,4vh,2.75rem)]">
+      <h1 class="text-[clamp(30px,5vw,44px)] font-black leading-none tracking-tight">
+        Mimi<span class="text-brand">Luxx</span>
+      </h1>
+      <p class="mt-1 text-[clamp(15px,2vw,20px)] font-semibold">Community</p>
+    </header>
+
+    <main class="mx-auto mt-6 w-[min(1120px,calc(100%-2rem))]">
+
+      <!-- ===================== PAGE TITLE ===================== -->
+      <div class="reveal mb-3 flex items-center gap-3" data-i="1">
+        <h2 class="text-xl font-extrabold">Task Management</h2>
+        <i class="fa-solid fa-chevron-right text-xs text-gray-500" aria-hidden="true"></i>
+        <span id="orgChip" class="text-lg font-medium"></span>
+      </div>
+
+      <!-- ===================== FILE EXPLORER LOCATION BAR ===================== -->
+      <div class="reveal mb-3 flex flex-wrap items-center gap-2" data-i="2">
+        <div class="flex items-center">
+          <button id="navBack" type="button" title="Back" aria-label="Back"
+            class="grid size-8 shrink-0 place-items-center rounded-md text-sm hover:bg-neutral-200 disabled:text-neutral-300 disabled:hover:bg-transparent focus-visible:outline-2 focus-visible:outline-brand" disabled>
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button id="navForward" type="button" title="Forward" aria-label="Forward"
+            class="grid size-8 shrink-0 place-items-center rounded-md text-sm hover:bg-neutral-200 disabled:text-neutral-300 disabled:hover:bg-transparent focus-visible:outline-2 focus-visible:outline-brand" disabled>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          <button id="navUp" type="button" title="Up one level" aria-label="Up one level"
+            class="grid size-8 shrink-0 place-items-center rounded-md text-sm hover:bg-neutral-200 disabled:text-neutral-300 disabled:hover:bg-transparent focus-visible:outline-2 focus-visible:outline-brand">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </div>
+
+        <nav aria-label="Location"
+          class="no-scrollbar flex h-9 min-w-0 flex-1 basis-60 items-center gap-1 overflow-x-auto rounded-md border border-neutral-400 bg-white px-2 transition-colors hover:border-neutral-600">
+          <i class="fa-solid fa-folder-open px-1 text-amber-400" aria-hidden="true"></i>
+          <ol id="crumbs" class="flex items-center whitespace-nowrap"></ol>
+        </nav>
+
+        <label class="relative block w-full sm:w-60">
+          <span class="sr-only">Search this folder</span>
+          <input id="searchInput" type="search" placeholder="Search this folder" autocomplete="off"
+            class="h-9 w-full rounded-full border border-ink bg-white pl-4 pr-9 text-[13px] outline-none transition-shadow focus:ring-4 focus:ring-brand/25" />
+          <i class="fa-solid fa-magnifying-glass pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs" aria-hidden="true"></i>
+        </label>
+      </div>
+
+      <!-- ===================== STATUS FILTER TABS ===================== -->
+      <div id="tabs" role="tablist" aria-label="Assignment status" data-i="3"
+        class="reveal mb-3 flex gap-6 border-b border-neutral-300">
+        <button type="button" role="tab" data-status="pending" aria-selected="true"
+          class="group relative inline-flex items-center gap-1.5 pb-2 pt-1.5 text-sm font-semibold text-neutral-400 transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:origin-left after:scale-x-0 after:rounded-t after:bg-brand after:transition-transform after:duration-300 hover:text-ink aria-selected:font-extrabold aria-selected:text-ink aria-selected:after:scale-x-100 focus-visible:outline-2 focus-visible:outline-brand">
+          Pending
+          <span data-count="pending" class="rounded-full bg-neutral-200 px-1.5 py-px text-[11px] font-bold text-ink group-aria-selected:bg-ink group-aria-selected:text-white">0</span>
+        </button>
+        <button type="button" role="tab" data-status="submitted" aria-selected="false"
+          class="group relative inline-flex items-center gap-1.5 pb-2 pt-1.5 text-sm font-semibold text-neutral-400 transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:origin-left after:scale-x-0 after:rounded-t after:bg-brand after:transition-transform after:duration-300 hover:text-ink aria-selected:font-extrabold aria-selected:text-ink aria-selected:after:scale-x-100 focus-visible:outline-2 focus-visible:outline-brand">
+          Submitted
+          <span data-count="submitted" class="rounded-full bg-neutral-200 px-1.5 py-px text-[11px] font-bold text-ink group-aria-selected:bg-ink group-aria-selected:text-white">0</span>
+        </button>
+        <button type="button" role="tab" data-status="missed" aria-selected="false"
+          class="group relative inline-flex items-center gap-1.5 pb-2 pt-1.5 text-sm font-semibold text-neutral-400 transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:origin-left after:scale-x-0 after:rounded-t after:bg-brand after:transition-transform after:duration-300 hover:text-ink aria-selected:font-extrabold aria-selected:text-ink aria-selected:after:scale-x-100 focus-visible:outline-2 focus-visible:outline-brand">
+          Did Not Submit
+          <span data-count="missed" class="rounded-full bg-neutral-200 px-1.5 py-px text-[11px] font-bold text-ink group-aria-selected:bg-ink group-aria-selected:text-white">0</span>
+        </button>
+      </div>
+
+      <!-- ===================== CONTENT (cards / folders / empty) ===================== -->
+      <section id="view" aria-live="polite"
+        class="scroll-dark max-h-[max(18rem,calc(100vh-27rem))] overflow-y-auto py-2 pl-1 pr-4 sm:pr-5">
+        <ol id="taskList" class="flex flex-col gap-4"></ol>
+        <div id="folderGrid" class="hidden grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-4"></div>
+        <div id="emptyState" class="hidden flex-col items-center gap-2 px-4 py-12 text-center text-gray-500">
+          <i class="fa-regular fa-folder-open text-4xl text-neutral-300" aria-hidden="true"></i>
+          <p id="emptyText" class="text-sm font-semibold">Nothing here.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===================== FLOATING DOCK ===================== -->
+    <div class="pointer-events-none fixed inset-x-0 bottom-3 z-30 flex justify-center px-2 sm:bottom-6">
+      <nav aria-label="Primary"
+        class="reveal-pop pointer-events-auto no-scrollbar flex max-w-full items-center gap-4 overflow-x-auto rounded-lg bg-white px-4 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.3)] sm:gap-7">
+        <button type="button" data-nav="Account" aria-label="Profile" class="size-11 shrink-0 rounded-full bg-[#9a9a9a]"></button>
+        <button type="button" data-nav="Home" aria-label="Home" class="shrink-0 text-2xl text-brand transition-transform duration-300 hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-house"></i></button>
+        <button type="button" data-nav="Org Page" aria-label="Org Page" class="shrink-0 text-2xl transition-transform duration-300 hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-building-columns"></i></button>
+        <button type="button" data-nav="Task Page" aria-label="Task Page" aria-current="page"
+          class="relative shrink-0 text-2xl transition-transform duration-300 after:absolute after:-bottom-2 after:left-1/2 after:size-1.5 after:-translate-x-1/2 after:rounded-full after:bg-brand hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-clipboard-list"></i></button>
+        <button type="button" data-nav="Settings" aria-label="Settings" class="shrink-0 text-2xl text-brand transition-transform duration-300 hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-toggle-on"></i></button>
+        <button type="button" data-nav="Account" aria-label="Account" class="shrink-0 text-2xl transition-transform duration-300 hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-user"></i></button>
+        <span class="w-2 shrink-0" aria-hidden="true"></span>
+        <button type="button" data-nav="Logout" aria-label="Logout" class="shrink-0 text-xl text-brand transition-transform duration-300 hover:scale-125 focus-visible:outline-2 focus-visible:outline-brand"><i class="fa-solid fa-door-open"></i></button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===================== FULL TASK VIEW (modal) ===================== -->
+  <dialog id="taskModal" aria-labelledby="taskModalTitle"
+    class="m-auto h-[min(900px,94vh)] max-h-[94vh] w-[min(1100px,96vw)] max-w-[96vw] overflow-hidden rounded-2xl border-0 bg-white p-0 text-ink shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop:bg-ink/55 backdrop:backdrop-blur-sm open:animate-[pop-in_0.4s_cubic-bezier(0.34,1.56,0.64,1)] max-sm:h-screen max-sm:max-h-screen max-sm:w-screen max-sm:max-w-none max-sm:rounded-none">
+    <div id="taskModalBody" class="flex h-full flex-col"></div>
+  </dialog>
+
+  <!-- ===================== FILE UPLOAD MODAL ===================== -->
+  <dialog id="uploadModal" aria-labelledby="uploadTitle"
+    class="m-auto max-h-[94vh] w-[min(540px,94vw)] overflow-hidden rounded-2xl border-0 bg-white p-0 text-ink shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop:bg-ink/55 backdrop:backdrop-blur-sm open:animate-[pop-in_0.4s_cubic-bezier(0.34,1.56,0.64,1)]">
+    <div class="flex flex-col">
+      <div class="relative bg-ink px-6 py-5 pr-16 text-white">
+        <p id="uploadTarget" class="text-xs font-bold opacity-90">Attach a file</p>
+        <h2 id="uploadTitle" class="mt-0.5 text-2xl font-extrabold leading-tight">Upload submission</h2>
+        <button type="button" data-action="close-upload" aria-label="Close upload dialog"
+          class="absolute right-3.5 top-3.5 grid size-9 place-items-center rounded-full bg-white/20 transition duration-300 hover:rotate-90 hover:bg-white/40 focus-visible:outline-[3px] focus-visible:outline-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="px-6 py-5">
+        <label id="dropzone" for="fileInput"
+          class="flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border-2 border-dashed border-neutral-400 bg-neutral-50 px-4 py-8 text-center transition duration-300 hover:border-ink focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-brand data-[over=true]:scale-[1.02] data-[over=true]:border-brand data-[over=true]:bg-red-50">
+          <i class="fa-solid fa-cloud-arrow-up text-4xl text-brand" aria-hidden="true"></i>
+          <strong class="text-[15px]">Drag &amp; drop a file here</strong>
+          <span class="text-xs text-gray-500">or click to browse</span>
+          <span class="text-xs text-gray-500">PDF, DOCX, XLSX, PPTX, PNG, JPG, ZIP &middot; up to 25 MB</span>
+          <input id="fileInput" class="sr-only" type="file" accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.zip" />
+        </label>
+
+        <p id="uploadError" role="alert" class="mt-3 hidden rounded-lg bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-800"></p>
+
+        <div id="uploadChosen" class="mt-3.5 hidden items-center gap-3 rounded-lg border border-neutral-300 px-3 py-2.5 text-sm">
+          <span id="uploadThumb" class="shrink-0"></span>
+          <div id="uploadChosenName" class="min-w-0 flex-1 truncate font-semibold"></div>
+          <span id="uploadChosenSize" class="text-xs text-gray-500"></span>
+          <button type="button" id="uploadClear" class="rounded-md bg-neutral-200 px-2.5 py-1 text-xs font-bold transition-colors hover:bg-neutral-300 focus-visible:outline-2 focus-visible:outline-brand">Remove</button>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2.5 px-6 pb-5">
+        <button type="button" data-action="close-upload"
+          class="inline-flex items-center justify-center gap-1.5 rounded-full border-[1.5px] border-ink bg-white px-4 py-1.5 text-[13px] font-bold transition-colors hover:bg-ink hover:text-white focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-brand">Cancel</button>
+        <button type="button" id="uploadConfirm" disabled
+          class="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-5 py-2 text-[13px] font-bold text-white transition duration-200 hover:bg-[#cc0000] enabled:hover:scale-105 enabled:active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink">
+          <i class="fa-solid fa-paperclip"></i> Attach file
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================== TOASTS ===================== -->
+  <div id="toasts" role="status" aria-live="polite" class="pointer-events-none fixed bottom-24 right-4 z-50 flex flex-col gap-2 sm:bottom-6 sm:right-6"></div>
+
+  <!-- ===================== APP LOGIC ===================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* ------------------------------------------------------------------
+         Helpers
+         ------------------------------------------------------------------ */
+      const $  = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+      const show = (el, on) => el.classList.toggle('hidden', !on);
+
+      const esc = (v) => String(v).replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+      const extOf = (name) => (name.split('.').pop() || '').toLowerCase();
+      const truncate = (s, n = 22) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+      const fmtSize = (b) => {
+        if (b < 1024) return `${b} B`;
+        if (b < 1048576) return `${Math.round(b / 1024)} KB`;
+        return `${(b / 1048576).toFixed(1)} MB`;
+      };
+      const fmtDeadline = (d) =>
+        `${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ` +
+        `${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      const fmtShort = (d) =>
+        `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ` +
+        `${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+
+      /** A date `dayOffset` days from now at h:m, so the sample data is always current. */
+      const at = (dayOffset, h, m) => {
+        const d = new Date();
+        d.setDate(d.getDate() + dayOffset);
+        d.setHours(h, m, 0, 0);
+        return d;
+      };
+
+      /* ------------------------------------------------------------------
+         Shared class strings (kept whole so Tailwind can see every token)
+         ------------------------------------------------------------------ */
+      const BTN_SUBMIT = 'inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-6 py-1 text-[13px] font-bold text-white transition duration-200 hover:scale-105 hover:bg-[#cc0000] active:scale-95 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink';
+      const BTN_GHOST  = 'inline-flex items-center justify-center gap-1.5 rounded-full border-[1.5px] border-ink bg-white px-4 py-1.5 text-[13px] font-bold transition-colors hover:bg-ink hover:text-white focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-brand';
+      const BTN_ATTACH = 'max-w-full truncate rounded bg-[#d9d9d9] px-2.5 py-1 text-[11px] font-semibold transition-colors hover:bg-[#bdbdbd] focus-visible:outline-2 focus-visible:outline-brand';
+      const LINK_BTN   = 'rounded-md bg-neutral-200 px-2.5 py-1 text-xs font-bold transition-colors hover:bg-neutral-300 focus-visible:outline-2 focus-visible:outline-brand';
+      const PREVIEW_BOX = 'mb-2 flex h-28 w-20 flex-col items-center justify-center gap-1 overflow-hidden rounded-lg bg-[#2b2b2b] text-[11px] font-semibold text-white';
+      const LABEL = 'mb-1 text-[13px] font-semibold';
+
+      /* ------------------------------------------------------------------
+         Constants
+         ------------------------------------------------------------------ */
+      const ACCEPTED_EXT = ['pdf', 'docx', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg', 'zip'];
+      const IMAGE_EXT    = ['png', 'jpg', 'jpeg'];
+      const MAX_BYTES    = 25 * 1024 * 1024;
+
+      /* Priority queue: Red <= 2 days, Orange <= 5, Yellow <= 7, Green > 7 */
+      const URGENCY_RANK  = { red: 0, orange: 1, yellow: 2, green: 3 };
+      const URGENCY_LABEL = { red: 'Urgent', orange: 'High', yellow: 'Medium', green: 'Low' };
+      const DAY_MS = 86400000;
+
+      const DEFAULT_PATH = ['Organizations', 'ICpEP.SE', 'Tasks', 'Active Sprint'];
+
+      /* Folder tree behind the Explorer-style location bar */
+      const TREE = {
+        'Organizations': {
+          'ICpEP.SE': {
+            'Tasks':  { 'Active Sprint': {}, 'Archive': {} },
+            'Events': { 'Upcoming': {}, 'Past': {} },
+          },
+          'GDGOC': {
+            'Tasks':  { 'Active Sprint': {}, 'Archive': {} },
+            'Events': { 'Upcoming': {}, 'Past': {} },
+          },
+        },
+      };
+
+      /* ------------------------------------------------------------------
+         Sample data
+         ------------------------------------------------------------------ */
+      const tasks = [
+        {
+          id: 't1', committee: 'Committee on Internal Affairs', title: 'Project Proposal Drafting',
+          deadline: at(1, 23, 59),
+          description: 'Draft a two-page project proposal for the upcoming General Assembly. Cover the rationale, objectives, target participants, timeline and a preliminary budget.',
+          instructions: ['Use the attached proposal template.', 'Keep the document to a maximum of two pages.', 'Submit as PDF or DOCX.', 'Name the file Surname_ProjectProposal.'],
+          attachments: [{ name: 'Proposal_Template.docx', size: 86016 }, { name: 'Drafting_Guidelines.pdf', size: 412000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't2', committee: 'Public Relations Committee', title: 'Global Goals Week 2026',
+          deadline: at(4, 23, 59),
+          description: 'Prepare the campaign deck for Global Goals Week 2026, including the weekly theme, social media schedule and partner shout-outs.',
+          instructions: ['Use the organization brand kit.', 'Include a 7-day posting calendar.', 'Export slides as PPTX.'],
+          attachments: [{ name: 'Brand_Kit.zip', size: 3400000 }, { name: 'Campaign_Brief.pdf', size: 289000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't3', committee: 'Public Relations Committee', title: 'Global Goals Week 2026 Recap',
+          deadline: at(6, 23, 59),
+          description: 'Write a short recap of Global Goals Week with engagement numbers, photos and lessons learned for the next campaign.',
+          instructions: ['One page summary plus an image appendix.', 'Include reach and engagement metrics.', 'Submit as PDF.'],
+          attachments: [{ name: 'Recap_Outline.docx', size: 47000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't4', committee: 'Committee on Finance', title: 'Budget Liquidation Report',
+          deadline: at(12, 23, 59),
+          description: 'Liquidate the funds used for the last event. Attach official receipts and reconcile every expense against the approved budget.',
+          instructions: ['Scan all official receipts in a single ZIP.', 'Use the liquidation workbook.', 'Totals must match the approved budget.'],
+          attachments: [{ name: 'Liquidation_Workbook.xlsx', size: 98000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't5', committee: 'Committee on External Affairs', title: 'Sponsorship Letter Drafts',
+          deadline: at(20, 23, 59),
+          description: 'Draft sponsorship request letters for the next semester. Prepare three variants for local, regional and corporate partners.',
+          instructions: ['Use the formal letter template.', 'Tailor the benefits section for each partner type.', 'Have the draft reviewed by your committee head.'],
+          attachments: [{ name: 'Letter_Template.docx', size: 39000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't6', committee: 'Committee on Finance', title: 'Collection Sheet',
+          deadline: at(3, 23, 59),
+          description: 'Update the membership fee collection sheet with all payments received this month.',
+          instructions: ['Use the shared workbook format.', 'Mark unpaid members in red.'],
+          attachments: [{ name: 'Collection_Sheet.xlsx', size: 72000 }],
+          draft: null,
+          submission: { name: 'Collection_Sheet_Oct.xlsx', size: 80500, url: null },
+          submittedAt: at(-1, 14, 5),
+        },
+        {
+          id: 't7', committee: 'Committee on Internal Affairs', title: 'Orientation Program Outline',
+          deadline: at(-3, 23, 59),
+          description: 'Outline the flow of the new-member orientation, including speakers, activities and time allocations.',
+          instructions: ['One page, table format.', 'Include a backup activity.'],
+          attachments: [{ name: 'Orientation_Reference.pdf', size: 221000 }],
+          draft: null,
+          submission: { name: 'Orientation_Outline.pdf', size: 238000, url: null },
+          submittedAt: at(-4, 18, 20),
+        },
+        {
+          id: 't8', committee: 'Secretariat', title: 'Attendance Roster Update',
+          deadline: at(-2, 23, 59),
+          description: 'Update the attendance roster for all general meetings held this month.',
+          instructions: ['Use the roster spreadsheet.', 'Flag members with three or more absences.'],
+          attachments: [{ name: 'Roster_Template.xlsx', size: 44000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't9', committee: 'Committee on External Affairs', title: 'Partner Org Directory',
+          deadline: at(-6, 23, 59),
+          description: 'Compile a directory of partner organizations with contact persons, emails and past collaborations.',
+          instructions: ['Include at least ten organizations.', 'Verify each contact email.'],
+          attachments: [{ name: 'Directory_Template.xlsx', size: 36000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+      ];
+
+      /* ------------------------------------------------------------------
+         Derived state
+         ------------------------------------------------------------------ */
+      const byId   = (id) => tasks.find((t) => t.id === id);
+      const fileOf = (t) => t.submission || t.draft;
+      const isLive = (t) => t.deadline.getTime() > Date.now();
+
+      const statusOf = (t) => (t.submission ? 'submitted' : isLive(t) ? 'pending' : 'missed');
+
+      const urgencyOf = (t) => {
+        const ms = t.deadline.getTime() - Date.now();
+        if (ms <= 0) return null;
+        if (ms <= 2 * DAY_MS) return 'red';
+        if (ms <= 5 * DAY_MS) return 'orange';
+        if (ms <= 7 * DAY_MS) return 'yellow';
+        return 'green';
+      };
+
+      const toneOf = (t) => {
+        const st = statusOf(t);
+        return st === 'submitted' ? 'done' : st === 'missed' ? 'missed' : urgencyOf(t);
+      };
+
+      const spanText = (ms) => {
+        const total = Math.floor(Math.abs(ms) / 60000);
+        const d = Math.floor(total / 1440);
+        const h = Math.floor((total % 1440) / 60);
+        const m = total % 60;
+        if (d > 0) return `${d}d ${h}h`;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+      };
+
+      const chipText = (t) => {
+        const st = statusOf(t);
+        if (st === 'submitted') return `Submitted ${fmtShort(t.submittedAt)}`;
+        const ms = t.deadline.getTime() - Date.now();
+        if (st === 'missed') return `Overdue by ${spanText(ms)}`;
+        return `${URGENCY_LABEL[urgencyOf(t)]} · due in ${spanText(ms)}`;
+      };
+
+      const signature = () => tasks.map((t) => `${t.id}:${statusOf(t)}:${toneOf(t)}`).join('|');
+
+      /* ------------------------------------------------------------------
+         UI state
+         ------------------------------------------------------------------ */
+      let currentStatus = 'pending';
+      let query = '';
+      let path = DEFAULT_PATH.slice();
+      let history = [path.slice()];
+      let historyIndex = 0;
+      let openTaskId = null;
+      let uploadTargetId = null;
+      let pendingFile = null;
+      let lastSignature = signature();
+
+      /* ------------------------------------------------------------------
+         Elements
+         ------------------------------------------------------------------ */
+      const taskList = $('#taskList'), folderGrid = $('#folderGrid'), emptyState = $('#emptyState'), emptyText = $('#emptyText');
+      const tabsEl = $('#tabs'), crumbsEl = $('#crumbs'), searchInput = $('#searchInput'), orgChip = $('#orgChip');
+      const navBack = $('#navBack'), navForward = $('#navForward'), navUp = $('#navUp');
+      const taskModal = $('#taskModal'), taskModalBody = $('#taskModalBody'), uploadModal = $('#uploadModal');
+      const dropzone = $('#dropzone'), fileInput = $('#fileInput'), uploadError = $('#uploadError');
+      const uploadChosen = $('#uploadChosen'), uploadConfirm = $('#uploadConfirm'), toasts = $('#toasts');
+
+      /* Give every [data-i] element its stagger index for the entrance animation */
+      const applyStagger = (root = document) =>
+        $$('[data-i]', root).forEach((el) => el.style.setProperty('--i', el.dataset.i));
+
+      function toast(message, warn = false) {
+        const el = document.createElement('div');
+        el.className = `toast pointer-events-auto max-w-80 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] animate-[toast-in_0.4s_cubic-bezier(0.34,1.56,0.64,1)] ${warn ? 'bg-[#b00000]' : 'bg-ink'}`;
+        el.textContent = message;
+        toasts.appendChild(el);
+        setTimeout(() => el.remove(), 3200);
+      }
+
+      /* ------------------------------------------------------------------
+         Explorer-style navigation
+         ------------------------------------------------------------------ */
+      const samePath = (a, b) => a.length === b.length && a.every((s, i) => s === b[i]);
+      const isTasksView = () => path[path.length - 1] === 'Active Sprint';
+
+      function nodeAt(p) {
+        let node = TREE;
+        for (const seg of p) {
+          node = node && node[seg];
+          if (!node) return null;
+        }
+        return node;
+      }
+
+      function navigate(newPath, push = true) {
+        if (samePath(newPath, path)) return;
+        path = newPath.slice();
+        if (push) {
+          history = history.slice(0, historyIndex + 1);
+          history.push(path.slice());
+          historyIndex = history.length - 1;
+        }
+        searchInput.value = '';
+        query = '';
+        render(true);
+      }
+
+      function renderCrumbs() {
+        crumbsEl.innerHTML = path.map((seg, i) => {
+          const last = i === path.length - 1;
+          return `
+            <li class="inline-flex items-center">
+              <button type="button" data-crumb="${i}"${last ? ' aria-current="page"' : ''}
+                class="rounded px-2 py-1 text-[13px] hover:bg-sky-50 focus-visible:outline-2 focus-visible:outline-brand aria-[current=page]:cursor-default aria-[current=page]:font-bold aria-[current=page]:hover:bg-transparent">${esc(seg)}</button>
+              ${last ? '' : '<i class="fa-solid fa-chevron-right text-[10px] text-gray-400" aria-hidden="true"></i>'}
+            </li>`;
+        }).join('');
+
+        orgChip.textContent = path[1] || '';
+        navBack.disabled = historyIndex === 0;
+        navForward.disabled = historyIndex >= history.length - 1;
+        navUp.disabled = path.length <= 1;
+      }
+
+      crumbsEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-crumb]');
+        if (btn) navigate(path.slice(0, Number(btn.dataset.crumb) + 1));
+      });
+      navBack.addEventListener('click', () => { if (historyIndex > 0) { historyIndex -= 1; navigate(history[historyIndex], false); } });
+      navForward.addEventListener('click', () => { if (historyIndex < history.length - 1) { historyIndex += 1; navigate(history[historyIndex], false); } });
+      navUp.addEventListener('click', () => { if (path.length > 1) navigate(path.slice(0, -1)); });
+      folderGrid.addEventListener('click', (e) => {
+        const tile = e.target.closest('[data-folder]');
+        if (tile) navigate([...path, tile.dataset.folder]);
+      });
+
+      /* ------------------------------------------------------------------
+         Filtering + priority-queue sorting
+         ------------------------------------------------------------------ */
+      function visibleTasks(status) {
+        const q = query.toLowerCase();
+        return tasks
+          .filter((t) => statusOf(t) === status)
+          .filter((t) => !q || `${t.title} ${t.committee}`.toLowerCase().includes(q))
+          .sort((a, b) => {
+            if (status === 'pending') {
+              return (URGENCY_RANK[urgencyOf(a)] - URGENCY_RANK[urgencyOf(b)]) || (a.deadline - b.deadline);
+            }
+            if (status === 'submitted') return b.submittedAt - a.submittedAt;
+            return b.deadline - a.deadline;
+          });
+      }
+
+      tabsEl.addEventListener('click', (e) => {
+        const tab = e.target.closest('[data-status]');
+        if (!tab) return;
+        currentStatus = tab.dataset.status;
+        render(true);
+      });
+
+      tabsEl.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        const order = ['pending', 'submitted', 'missed'];
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        currentStatus = order[(order.indexOf(currentStatus) + dir + order.length) % order.length];
+        render(true);
+        $(`[data-status="${currentStatus}"]`, tabsEl).focus();
+      });
+
+      searchInput.addEventListener('input', () => { query = searchInput.value.trim(); render(false); });
+
+      /* ------------------------------------------------------------------
+         Card markup
+         ------------------------------------------------------------------ */
+      function previewHtml(file) {
+        if (!file) return '<span class="font-medium text-neutral-400">No file</span>';
+        const ext = extOf(file.name);
+        if (file.url && IMAGE_EXT.includes(ext)) {
+          return `<img class="size-full object-cover" src="${esc(file.url)}" alt="Preview of ${esc(file.name)}" />`;
+        }
+        return `<i class="fa-solid fa-file-lines text-2xl text-[#ff6b6b]" aria-hidden="true"></i><span>.${esc(ext.toUpperCase())}</span>`;
+      }
+
+      const chipsHtml = (t) => t.attachments.map((f) =>
+        `<li class="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-neutral-50 px-2 py-0.5 text-[11px] font-medium"><i class="fa-solid fa-paperclip text-brand" aria-hidden="true"></i>${esc(f.name)}</li>`
+      ).join('');
+
+      /* The quick-detail preview revealed on hover / keyboard focus */
+      function previewPanel(t) {
+        const st = statusOf(t);
+        const file = fileOf(t);
+        const grid = 'grid gap-x-6 gap-y-3 pb-1 md:grid-cols-[minmax(0,1fr)_12rem]';
+        const text = 'mb-2 text-[13px] leading-relaxed text-neutral-700';
+
+        if (st === 'pending') {
+          return `
+            <div class="${grid}">
+              <div>
+                <p class="${LABEL}">Details</p>
+                <p class="${text}">${esc(t.description)}</p>
+                <ul class="mb-3 flex flex-wrap gap-1.5" aria-label="Attached files">${chipsHtml(t)}</ul>
+                <button type="button" data-action="submit" data-id="${t.id}" class="${BTN_SUBMIT}">Submit</button>
+              </div>
+              <div>
+                <p class="${LABEL}">File Preview</p>
+                <div class="${PREVIEW_BOX}">${previewHtml(file)}</div>
+                <p class="${LABEL}">Submission File:</p>
+                <button type="button" data-action="attach" data-id="${t.id}" class="${BTN_ATTACH}">${file ? esc(truncate(file.name)) : 'Attach/Upload File'}</button>
+              </div>
+            </div>`;
+        }
+        if (st === 'submitted') {
+          return `
+            <div class="${grid}">
+              <div>
+                <p class="${LABEL}">Details</p>
+                <p class="${text}">${esc(t.description)}</p>
+                <p class="${text}"><strong>Submitted:</strong> ${esc(fmtDeadline(t.submittedAt))}</p>
+                ${isLive(t) ? `<button type="button" data-action="unsubmit" data-id="${t.id}" class="${BTN_GHOST}">Unsubmit</button>` : ''}
+              </div>
+              <div>
+                <p class="${LABEL}">Submitted File</p>
+                <div class="${PREVIEW_BOX}">${previewHtml(file)}</div>
+                <p class="${LABEL}">${esc(truncate(file.name))}</p>
+              </div>
+            </div>`;
+        }
+        return `
+          <div class="${grid}">
+            <div>
+              <p class="${LABEL}">Details</p>
+              <p class="${text}">${esc(t.description)}</p>
+              <p class="${text}"><strong>The deadline has passed.</strong> Contact your committee head to request a late submission.</p>
+            </div>
+            <div>
+              <p class="${LABEL}">File Preview</p>
+              <div class="${PREVIEW_BOX}">${previewHtml(null)}</div>
+            </div>
+          </div>`;
+      }
+
+      function cardHtml(t, rank, animate) {
+        return `
+          <li data-tone="${toneOf(t)}" data-id="${t.id}" data-i="${Math.min(rank - 1, 12)}" tabindex="0"
+            aria-label="${esc(t.title)}, ${esc(chipText(t))}"
+            class="group relative flex overflow-hidden rounded-[14px] border-[1.5px] border-ink bg-white shadow-[3px_4px_0_rgba(0,0,0,0.2)] outline-none transition duration-300 hover:-translate-y-0.5 hover:shadow-[5px_8px_0_rgba(0,0,0,0.26)] focus-within:-translate-y-0.5 focus-within:shadow-[5px_8px_0_rgba(0,0,0,0.26)] focus-visible:ring-4 focus-visible:ring-brand/40 ${animate ? 'reveal' : ''}">
+            <div aria-hidden="true" class="flex w-11 shrink-0 items-center justify-center bg-[var(--tone)] text-3xl font-extrabold text-[var(--tone-ink)] sm:w-[3.25rem]">${rank}</div>
+
+            <div class="relative min-w-0 flex-1 py-3 pl-4 pr-14 sm:pl-5 sm:pr-16">
+              <p class="text-xs font-bold">${esc(t.committee)}</p>
+              <h3 class="text-[clamp(1.35rem,3.2vw,2rem)] font-extrabold leading-[1.1] tracking-tight">${esc(t.title)}</h3>
+              <p class="mt-1 text-[13px] font-bold">Deadline: ${esc(fmtDeadline(t.deadline))}</p>
+              <span data-chip="${t.id}" class="mt-2 inline-block rounded-full border border-[var(--tone)] bg-[color-mix(in_srgb,var(--tone)_12%,white)] px-2.5 py-0.5 text-[11px] font-bold">${esc(chipText(t))}</span>
+
+              <!-- Hover / focus expansion: grid rows animate 0fr to 1fr -->
+              <div class="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,margin] duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100 group-focus-within:mt-3 group-focus-within:grid-rows-[1fr] group-focus-within:opacity-100">
+                <div class="min-h-0 overflow-hidden">${previewPanel(t)}</div>
+              </div>
+
+              <button type="button" data-action="open" data-id="${t.id}" aria-label="Open full view of ${esc(t.title)}"
+                class="absolute bottom-3.5 right-3 grid size-9 place-items-center rounded-full bg-[#d9d9d9] text-xs transition duration-300 hover:scale-110 hover:bg-brand hover:text-white focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink sm:right-4">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </li>`;
+      }
+
+      /* ------------------------------------------------------------------
+         Render
+         ------------------------------------------------------------------ */
+      function render(animate) {
+        renderCrumbs();
+
+        const tasksView = isTasksView();
+        show(tabsEl, tasksView);
+        show(taskList, tasksView);
+        show(folderGrid, false);
+        show(emptyState, false);
+
+        if (tasksView) {
+          ['pending', 'submitted', 'missed'].forEach((s) => {
+            $(`[data-count="${s}"]`).textContent = visibleTasks(s).length;
+            $(`[data-status="${s}"]`).setAttribute('aria-selected', String(s === currentStatus));
+          });
+
+          const list = visibleTasks(currentStatus);
+          taskList.innerHTML = list.map((t, i) => cardHtml(t, i + 1, animate)).join('');
+          applyStagger(taskList);
+
+          if (!list.length) {
+            show(taskList, false);
+            show(emptyState, true);
+            const labels = { pending: 'No pending assignments.', submitted: 'You have not submitted anything yet.', missed: 'No missed deadlines. Nice work!' };
+            emptyText.textContent = query ? `No assignments match “${query}”.` : labels[currentStatus];
+          }
+          return;
+        }
+
+        /* Folder view */
+        const node = nodeAt(path) || {};
+        const q = query.toLowerCase();
+        const names = Object.keys(node).filter((n) => !q || n.toLowerCase().includes(q));
+
+        if (names.length) {
+          show(folderGrid, true);
+          folderGrid.classList.add('grid');
+          folderGrid.innerHTML = names.map((n, i) => `
+            <button type="button" data-folder="${esc(n)}" data-i="${Math.min(i, 12)}"
+              class="flex flex-col items-center gap-2.5 rounded-[14px] border-[1.5px] border-neutral-300 bg-white px-3 py-5 text-sm font-bold transition duration-300 hover:-translate-y-0.5 hover:border-ink hover:shadow-[3px_5px_0_rgba(0,0,0,0.18)] focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-brand ${animate ? 'reveal' : ''}">
+              <i class="fa-solid fa-folder text-4xl text-amber-400" aria-hidden="true"></i>
+              <span>${esc(n)}</span>
+            </button>`).join('');
+          applyStagger(folderGrid);
+        } else {
+          show(emptyState, true);
+          emptyText.textContent = query ? `No folders match “${query}”.` : 'This folder is empty.';
+        }
+      }
+
+      /* ------------------------------------------------------------------
+         Actions (cards and modal share one handler)
+         ------------------------------------------------------------------ */
+      function submitTask(id) {
+        const t = byId(id);
+        if (!t || statusOf(t) !== 'pending') return;
+        if (!t.draft) { toast('Attach a file before submitting.', true); openUpload(id); return; }
+        t.submission = t.draft;
+        t.draft = null;
+        t.submittedAt = new Date();
+        toast(`“${t.title}” submitted.`);
+        refresh();
+      }
+
+      function unsubmitTask(id) {
+        const t = byId(id);
+        if (!t || !t.submission || !isLive(t)) return;
+        t.draft = t.submission;
+        t.submission = null;
+        t.submittedAt = null;
+        toast(`“${t.title}” moved back to Pending.`);
+        refresh();
+      }
+
+      function removeDraft(id) {
+        const t = byId(id);
+        if (!t || !t.draft) return;
+        if (t.draft.url) URL.revokeObjectURL(t.draft.url);
+        t.draft = null;
+        refresh();
+      }
+
+      function downloadAttachment(id, index) {
+        const t = byId(id);
+        const f = t && t.attachments[index];
+        if (!f) return;
+        const blob = new Blob([`${f.name}\n${t.title} – ${t.committee}\n\nPreview copy from the MimiLuxx demo.\n`], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: `${f.name.replace(/\.[^.]+$/, '')}-preview.txt` });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast(`Downloaded preview of ${f.name}`);
+      }
+
+      function handleAction(e) {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const { action, id } = btn.dataset;
+        switch (action) {
+          case 'open':         openTask(id); break;
+          case 'attach':       openUpload(id); break;
+          case 'submit':       submitTask(id); break;
+          case 'unsubmit':     unsubmitTask(id); break;
+          case 'remove-draft': removeDraft(id); break;
+          case 'download':     downloadAttachment(id, Number(btn.dataset.index)); break;
+          case 'close-task':   taskModal.close(); break;
+          case 'close-upload': uploadModal.close(); break;
+          default: break;
+        }
+      }
+
+      taskList.addEventListener('click', handleAction);
+      taskModalBody.addEventListener('click', handleAction);
+      uploadModal.addEventListener('click', (e) => {
+        if (e.target === uploadModal) uploadModal.close(); // click on backdrop
+        else handleAction(e);
+      });
+
+      /* ------------------------------------------------------------------
+         Full task view (modal)
+         ------------------------------------------------------------------ */
+      const SECTION_TITLE = 'mb-2 text-xs font-extrabold uppercase tracking-wider text-gray-500';
+      const SUBMISSION_BOX = 'flex flex-col gap-4 rounded-xl border-[1.5px] border-dashed border-neutral-400 bg-neutral-50 p-4 sm:flex-row';
+
+      function modalHtml(t) {
+        const st = statusOf(t);
+        const file = fileOf(t);
+        let submission;
+
+        if (st === 'submitted') {
+          submission = `
+            <div class="${SUBMISSION_BOX}">
+              <div class="${PREVIEW_BOX} mb-0 shrink-0">${previewHtml(file)}</div>
+              <div class="min-w-0 flex-1 text-sm">
+                <p class="mb-2"><strong>${esc(file.name)}</strong> · ${fmtSize(file.size)}</p>
+                <p class="mb-3">Submitted ${esc(fmtDeadline(t.submittedAt))}</p>
+                ${isLive(t) ? `<button type="button" data-action="unsubmit" data-id="${t.id}" class="${BTN_GHOST}"><i class="fa-solid fa-rotate-left"></i> Unsubmit</button>` : ''}
+              </div>
+            </div>`;
+        } else if (st === 'missed') {
+          submission = '<p class="text-[15px] leading-relaxed">The deadline for this assignment has passed and nothing was submitted. Contact your committee head to request a late submission.</p>';
+        } else {
+          submission = `
+            <div class="${SUBMISSION_BOX}">
+              <div class="${PREVIEW_BOX} mb-0 shrink-0">${previewHtml(file)}</div>
+              <div class="min-w-0 flex-1 text-sm">
+                <p class="mb-3">${file ? `<strong>${esc(file.name)}</strong> · ${fmtSize(file.size)}` : 'No file attached yet.'}</p>
+                <div class="flex flex-wrap gap-2.5">
+                  <button type="button" data-action="attach" data-id="${t.id}" class="${BTN_GHOST}"><i class="fa-solid fa-upload"></i> ${file ? 'Replace file' : 'Upload file'}</button>
+                  ${file ? `<button type="button" data-action="remove-draft" data-id="${t.id}" class="${BTN_GHOST}"><i class="fa-regular fa-trash-can"></i> Remove</button>` : ''}
+                  <button type="button" data-action="submit" data-id="${t.id}" class="${BTN_SUBMIT}">Submit</button>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div data-tone="${toneOf(t)}" class="relative shrink-0 bg-[var(--tone)] px-6 py-5 pr-16 text-[var(--tone-ink)]">
+            <p class="text-xs font-bold opacity-90">${esc(t.committee)}</p>
+            <h2 id="taskModalTitle" class="mt-0.5 text-[clamp(1.4rem,3vw,1.9rem)] font-extrabold leading-tight">${esc(t.title)}</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold"><i class="fa-regular fa-clock"></i> ${esc(fmtDeadline(t.deadline))}</span>
+              <span data-chip="${t.id}" class="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold">${esc(chipText(t))}</span>
+            </div>
+            <button type="button" data-action="close-task" aria-label="Close full view"
+              class="absolute right-3.5 top-3.5 grid size-9 place-items-center rounded-full bg-white/20 transition duration-300 hover:rotate-90 hover:bg-white/40 focus-visible:outline-[3px] focus-visible:outline-white">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <section>
+              <h3 class="${SECTION_TITLE}">Description</h3>
+              <p class="text-[15px] leading-relaxed">${esc(t.description)}</p>
+            </section>
+            <section>
+              <h3 class="${SECTION_TITLE}">Instructions</h3>
+              <ol class="list-decimal space-y-1 pl-5 text-[15px] leading-relaxed">${t.instructions.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
+            </section>
+            <section>
+              <h3 class="${SECTION_TITLE}">Attached files</h3>
+              <ul class="flex flex-col gap-2">
+                ${t.attachments.map((f, i) => `
+                  <li class="flex items-center gap-3 rounded-lg border border-neutral-300 px-3 py-2 text-sm">
+                    <i class="fa-solid fa-file-lines text-lg text-brand" aria-hidden="true"></i>
+                    <span class="min-w-0 flex-1 truncate font-semibold">${esc(f.name)}</span>
+                    <span class="text-xs text-gray-500">${fmtSize(f.size)}</span>
+                    <button type="button" data-action="download" data-id="${t.id}" data-index="${i}" class="${LINK_BTN}">Download</button>
+                  </li>`).join('')}
+              </ul>
+            </section>
+            <section>
+              <h3 class="${SECTION_TITLE}">Your submission</h3>
+              ${submission}
+            </section>
+          </div>`;
+      }
+
+      const renderTaskModal = () => { const t = byId(openTaskId); if (t) taskModalBody.innerHTML = modalHtml(t); };
+      function openTask(id) { openTaskId = id; renderTaskModal(); if (!taskModal.open) taskModal.showModal(); }
+
+      taskModal.addEventListener('click', (e) => { if (e.target === taskModal) taskModal.close(); });
+      taskModal.addEventListener('close', () => { openTaskId = null; });
+
+      /* ------------------------------------------------------------------
+         Upload modal (drag and drop, or browse)
+         ------------------------------------------------------------------ */
+      function resetUpload() {
+        pendingFile = null;
+        fileInput.value = '';
+        show(uploadError, false);
+        show(uploadChosen, false);
+        uploadChosen.classList.remove('flex');
+        uploadConfirm.disabled = true;
+        dropzone.dataset.over = 'false';
+      }
+
+      function openUpload(id) {
+        const t = byId(id);
+        if (!t) return;
+        if (statusOf(t) !== 'pending') { toast('This assignment is no longer accepting files.', true); return; }
+        uploadTargetId = id;
+        resetUpload();
+        $('#uploadTarget').textContent = `${t.title} · ${t.committee}`;
+        if (!uploadModal.open) uploadModal.showModal();
+      }
+
+      function showUploadError(msg) {
+        uploadError.textContent = msg;
+        show(uploadError, true);
+        show(uploadChosen, false);
+        uploadConfirm.disabled = true;
+        pendingFile = null;
+      }
+
+      function acceptFile(file, note) {
+        const ext = extOf(file.name);
+        if (!ACCEPTED_EXT.includes(ext)) { showUploadError(`“.${ext || 'unknown'}” files are not supported. Use PDF, DOCX, XLSX, PPTX, PNG, JPG or ZIP.`); return; }
+        if (file.size === 0) { showUploadError('That file is empty.'); return; }
+        if (file.size > MAX_BYTES) { showUploadError(`That file is ${fmtSize(file.size)}. The limit is 25 MB.`); return; }
+
+        pendingFile = file;
+        uploadError.textContent = note || '';
+        show(uploadError, Boolean(note));
+
+        const thumb = $('#uploadThumb');
+        if (IMAGE_EXT.includes(ext)) {
+          const img = document.createElement('img');
+          img.className = 'size-10 rounded-md object-cover';
+          img.alt = '';
+          img.src = URL.createObjectURL(file);
+          img.addEventListener('load', () => URL.revokeObjectURL(img.src), { once: true });
+          thumb.replaceChildren(img);
+        } else {
+          const icon = document.createElement('i');
+          icon.className = 'fa-solid fa-file-lines text-2xl text-brand';
+          thumb.replaceChildren(icon);
+        }
+        $('#uploadChosenName').textContent = file.name;
+        $('#uploadChosenSize').textContent = fmtSize(file.size);
+        show(uploadChosen, true);
+        uploadChosen.classList.add('flex');
+        uploadConfirm.disabled = false;
+      }
+
+      fileInput.addEventListener('change', () => { if (fileInput.files[0]) acceptFile(fileInput.files[0]); });
+
+      ['dragenter', 'dragover'].forEach((evt) =>
+        dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.dataset.over = 'true'; }));
+      ['dragleave', 'dragend'].forEach((evt) =>
+        dropzone.addEventListener(evt, () => { dropzone.dataset.over = 'false'; }));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.dataset.over = 'false';
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length) acceptFile(files[0], files.length > 1 ? 'Only one file can be attached. Using the first one.' : '');
+      });
+
+      $('#uploadClear').addEventListener('click', resetUpload);
+
+      uploadConfirm.addEventListener('click', () => {
+        const t = byId(uploadTargetId);
+        if (!t || !pendingFile) return;
+        if (t.draft && t.draft.url) URL.revokeObjectURL(t.draft.url);
+        const ext = extOf(pendingFile.name);
+        t.draft = {
+          name: pendingFile.name,
+          size: pendingFile.size,
+          url: IMAGE_EXT.includes(ext) ? URL.createObjectURL(pendingFile) : null,
+        };
+        const name = pendingFile.name;
+        uploadModal.close();
+        toast(`Attached ${name}. Press Submit when you're ready.`);
+        refresh();
+      });
+
+      uploadModal.addEventListener('close', resetUpload);
+
+      /* ------------------------------------------------------------------
+         Refresh + live clock (re-sorts when a card crosses a threshold)
+         ------------------------------------------------------------------ */
+      function refresh() {
+        render(false);
+        if (taskModal.open) renderTaskModal();
+        lastSignature = signature();
+      }
+
+      setInterval(() => {
+        const sig = signature();
+        if (sig !== lastSignature) { lastSignature = sig; refresh(); return; }
+        $$('[data-chip]').forEach((el) => { const t = byId(el.dataset.chip); if (t) el.textContent = chipText(t); });
+      }, 30000);
+
+      /* ------------------------------------------------------------------
+         Dock (only the Task page exists in this demo)
+         ------------------------------------------------------------------ */
+      $$('[data-nav]').forEach((btn) => btn.addEventListener('click', () => {
+        const label = btn.dataset.nav;
+        toast(label === 'Task Page' ? 'You are already on the Task Page.' : `${label} isn't part of this demo.`);
+      }));
+
+      /* ------------------------------------------------------------------
+         Init
+         ------------------------------------------------------------------ */
+      applyStagger();
+      render(true);
+    })();
+  </script>
+</body>
+</html>
