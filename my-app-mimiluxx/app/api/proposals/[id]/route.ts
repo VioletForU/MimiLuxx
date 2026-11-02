@@ -98,8 +98,8 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   // RBAC guard: only the user whose role matches this stage's assigned
-  // signatory role can act on it — a Committee Lead can't approve the
-  // Exec Approver stage, and vice versa.
+  // signatory role can act on it — a Committee Head can't approve a
+  // stage that belongs to the President, and vice versa.
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
