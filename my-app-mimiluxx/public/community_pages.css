@@ -1,0 +1,194 @@
+/* ==========================================================================
+   MimiLuxx – Choose Org
+   Custom CSS that sits alongside the Tailwind utility classes in index.html.
+   (Tailwind is loaded from the Play CDN, so this file is plain CSS. If you
+   move to a Tailwind build step, add `@import "tailwindcss";` at the top.)
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   1. Design tokens
+   ------------------------------------------------------------------------- */
+:root {
+  --brand: #ff0000;
+  --ink: #050608;
+
+  /* Elastic "pop" curve used by all entrance animations */
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Carousel geometry: the active card is --card-w wide; every slot is 80% of
+     that so the shrunken neighbours sit ~15px away from the active card. */
+  --card-w: clamp(340px, 34vw, 560px);
+  --card-h: calc(var(--card-w) * 0.83);
+  --slot-w: calc(var(--card-w) * 0.8);
+  --min-scale: 0.54;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  overflow: hidden; /* single-screen layout, no page scroll */
+}
+
+/* -------------------------------------------------------------------------
+   2. Entrance animations
+   ------------------------------------------------------------------------- */
+@keyframes pop-in {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fade-down {
+  0%   { transform: translateY(-14px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.anim-logo {
+  animation: fade-down 0.7s ease-out both;
+}
+
+/* Navigation bar pops first … */
+.anim-nav {
+  animation: pop-in 0.75s var(--ease-pop) 0.1s both;
+}
+
+/* … then the mascot … */
+.anim-mascot {
+  animation: pop-in 0.75s var(--ease-pop) 0.3s both;
+  transform-origin: bottom right;
+}
+
+/* … then each card, staggered by its --i index. */
+.anim-card {
+  animation: pop-in 0.8s var(--ease-pop) calc(0.4s + var(--i, 0) * 0.12s) both;
+}
+
+/* -------------------------------------------------------------------------
+   3. Carousel
+   ------------------------------------------------------------------------- */
+.carousel-track {
+  position: relative; /* slots measure offsetLeft against this element */
+  display: flex;
+  align-items: flex-end;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Top padding leaves room for character art that rises above each card */
+  padding-top: calc(var(--card-w) * 0.3);
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* While the hover auto-scroll runs, snapping must be off or it fights rAF */
+.carousel-track.is-auto {
+  scroll-snap-type: none;
+}
+
+/* Spacers let the first and last card reach the centre of the track */
+.carousel-track::before,
+.carousel-track::after {
+  content: "";
+  flex: 0 0 calc(50% - var(--slot-w) / 2);
+}
+
+.carousel-slot {
+  --s: var(--min-scale); /* live scale, updated from JS while scrolling */
+  position: relative;
+  flex: 0 0 var(--slot-w);
+  height: var(--card-h);
+  scroll-snap-align: center;
+}
+
+/* -------------------------------------------------------------------------
+   4. Org card
+   ------------------------------------------------------------------------- */
+.org-card {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  transform: scale(var(--s));
+  transform-origin: center bottom;
+  will-change: transform;
+  border-radius: calc(var(--card-w) * 0.022);
+  /* black header band (top 25%) over red body */
+  background: linear-gradient(to bottom, var(--ink) 0 25%, var(--brand) 25% 100%);
+  display: block;
+  text-decoration: none;
+  outline: none;
+}
+
+.org-card:focus-visible {
+  box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--brand);
+}
+
+.org-card__name {
+  position: absolute;
+  left: 5%;
+  bottom: 5%;
+  max-width: 52%;
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(var(--card-w) * 0.085);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  z-index: 2;
+}
+
+/* Character cut-out: bottom-right of the card, rising above the top edge */
+.org-card__art {
+  position: absolute;
+  right: -1%;
+  bottom: 0;
+  height: 128%;
+  max-width: 64%;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom right;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   5. Arrow controls
+   ------------------------------------------------------------------------- */
+.carousel-arrow {
+  transition: transform 0.2s var(--ease-pop), opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.carousel-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.12);
+  background-color: var(--brand);
+  color: #fff;
+}
+
+.carousel-arrow:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* -------------------------------------------------------------------------
+   6. Reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .anim-logo,
+  .anim-nav,
+  .anim-mascot,
+  .anim-card {
+    animation: none;
+  }
+}
