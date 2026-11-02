@@ -1,0 +1,80 @@
+/* ==========================================================================
+   MimiLuxx – Task Dashboard  ·  styles.css
+   Layout and colour are Tailwind utility classes in index.html. This file only
+   holds what utilities cannot express: tone tokens, keyframes, scrollbars.
+
+   In a Next.js (Tailwind v4) project, paste this below `@import "tailwindcss";`
+   in app/globals.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   1. Tokens
+   ------------------------------------------------------------------------- */
+:root {
+  --brand: #ff0000;
+  --ink: #050608;
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Priority queue tones. Any element with data-tone="…" exposes --tone and
+   --tone-ink, which the utilities read as bg-[var(--tone)] etc.            */
+[data-tone="red"]    { --tone: #9b0000; --tone-ink: #ffffff; } /* Urgent: 2 days or less   */
+[data-tone="orange"] { --tone: #f25c05; --tone-ink: #ffffff; } /* High:   within 5 days    */
+[data-tone="yellow"] { --tone: #a8ad00; --tone-ink: #ffffff; } /* Medium: within 7 days    */
+[data-tone="green"]  { --tone: #2f9e44; --tone-ink: #ffffff; } /* Low:    more than 7 days */
+[data-tone="done"]   { --tone: #334155; --tone-ink: #ffffff; } /* Submitted                */
+[data-tone="missed"] { --tone: #6b7280; --tone-ink: #ffffff; } /* Did not submit           */
+
+/* -------------------------------------------------------------------------
+   2. Keyframes + entrance classes
+   ------------------------------------------------------------------------- */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Staggered by the --i index each element carries */
+.reveal {
+  animation: rise-in 0.65s var(--ease-pop) backwards;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+.reveal-pop {
+  animation: pop-in 0.7s var(--ease-pop) 0.2s backwards;
+}
+
+/* -------------------------------------------------------------------------
+   3. Scrollbars
+   ------------------------------------------------------------------------- */
+.scroll-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #222 #e5e5e5;
+}
+.scroll-dark::-webkit-scrollbar { width: 10px; }
+.scroll-dark::-webkit-scrollbar-track { background: #e5e5e5; border-radius: 9999px; }
+.scroll-dark::-webkit-scrollbar-thumb { background: #222; border-radius: 9999px; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* -------------------------------------------------------------------------
+   4. Reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-pop,
+  dialog[open],
+  .toast { animation: none !important; }
+
+  * { transition-duration: 0.01ms !important; }
+}

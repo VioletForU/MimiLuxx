@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MimiLuxx Community | Task Management</title>
+
+  <!-- Tailwind CSS (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- All custom CSS lives in task_pages.css -->
+  <link rel="stylesheet" href="task_pages.css" />
+</head>
+
+<body class="app-body">
+  <div class="page">
+
+    <!-- ===================== BRAND HEADER ===================== -->
+    <header class="brand reveal stagger-0">
+      <h1 class="brand-name">Mimi<span>Luxx</span></h1>
+      <p class="brand-sub">Community</p>
+    </header>
+
+    <main class="shell">
+
+      <!-- ===================== PAGE TITLE ===================== -->
+      <div class="title-row reveal stagger-1">
+        <h2>Task Management</h2>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        <span class="org-chip">ICpEP.SE</span>
+      </div>
+
+      <!-- ===================== FILE EXPLORER LOCATION BAR ===================== -->
+      <div class="explorer reveal stagger-2">
+        <button id="navBack" class="explorer-btn" type="button" aria-label="Back" title="Back" disabled>
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <button id="navForward" class="explorer-btn" type="button" aria-label="Forward" title="Forward" disabled>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <button id="navUp" class="explorer-btn" type="button" aria-label="Up one level" title="Up one level">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+
+        <nav class="addressbar" aria-label="Location">
+          <i class="fa-solid fa-folder-open addressbar-icon" aria-hidden="true"></i>
+          <ol id="crumbs" class="crumb-list"></ol>
+        </nav>
+
+        <label class="search">
+          <span class="sr-only">Search this folder</span>
+          <input id="searchInput" type="search" placeholder="Search this folder" autocomplete="off" />
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        </label>
+      </div>
+
+      <!-- ===================== STATUS TABS ===================== -->
+      <div id="tabs" class="tabs reveal stagger-3" role="tablist" aria-label="Assignment status">
+        <button class="tab" role="tab" type="button" data-status="pending" aria-selected="true">
+          Pending <span class="tab-count" data-count="pending">0</span>
+        </button>
+        <button class="tab" role="tab" type="button" data-status="submitted" aria-selected="false">
+          Submitted <span class="tab-count" data-count="submitted">0</span>
+        </button>
+        <button class="tab" role="tab" type="button" data-status="missed" aria-selected="false">
+          Did Not Submit <span class="tab-count" data-count="missed">0</span>
+        </button>
+      </div>
+
+      <!-- ===================== CONTENT VIEW ===================== -->
+      <section id="view" class="task-scroll" aria-live="polite">
+        <ol id="taskList" class="task-list"></ol>
+        <div id="folderGrid" class="folder-grid" hidden></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+          <p id="emptyText">Nothing here.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===================== FLOATING DOCK ===================== -->
+    <div class="dock-wrap">
+      <nav class="dock reveal-pop" aria-label="Primary">
+        <button class="dock-avatar" type="button" data-nav="Account" aria-label="Profile"></button>
+        <button class="dock-btn is-red" type="button" data-nav="Home" aria-label="Home"><i class="fa-solid fa-house"></i></button>
+        <button class="dock-btn" type="button" data-nav="Org Page" aria-label="Org Page"><i class="fa-solid fa-building-columns"></i></button>
+        <button class="dock-btn is-active" type="button" data-nav="Task Page" aria-label="Task Page" aria-current="page"><i class="fa-solid fa-clipboard-list"></i></button>
+        <button class="dock-btn is-red" type="button" data-nav="Settings" aria-label="Settings"><i class="fa-solid fa-toggle-on"></i></button>
+        <button class="dock-btn" type="button" data-nav="Account" aria-label="Account"><i class="fa-solid fa-user"></i></button>
+        <span class="dock-gap" aria-hidden="true"></span>
+        <button class="dock-btn is-red" type="button" data-nav="Logout" aria-label="Logout"><i class="fa-solid fa-door-open"></i></button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===================== TASK FULL-VIEW MODAL ===================== -->
+  <dialog id="taskModal" class="modal" aria-labelledby="taskModalTitle">
+    <div id="taskModalBody" class="modal-shell"></div>
+  </dialog>
+
+  <!-- ===================== FILE UPLOAD MODAL ===================== -->
+  <dialog id="uploadModal" class="modal modal-narrow" aria-labelledby="uploadTitle">
+    <div class="modal-shell">
+      <div class="modal-head plain">
+        <p class="modal-kicker" id="uploadTarget">Attach a file</p>
+        <h2 class="modal-title" id="uploadTitle">Upload submission</h2>
+        <button class="modal-close" type="button" data-action="close-upload" aria-label="Close upload dialog">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-content">
+        <label id="dropzone" class="dropzone" for="fileInput">
+          <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+          <strong>Drag &amp; drop a file here</strong>
+          <span>or click to browse</span>
+          <span>PDF, DOCX, XLSX, PPTX, PNG, JPG, ZIP &middot; up to 25 MB</span>
+          <input id="fileInput" class="sr-only" type="file" accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.zip" />
+        </label>
+
+        <p id="uploadError" class="upload-error" role="alert" hidden></p>
+
+        <div id="uploadChosen" class="upload-chosen" hidden>
+          <span id="uploadThumb"></span>
+          <div class="attach-name" id="uploadChosenName"></div>
+          <span class="attach-size" id="uploadChosenSize"></span>
+          <button class="link-btn" type="button" id="uploadClear">Remove</button>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn-ghost" type="button" data-action="close-upload">Cancel</button>
+        <button class="btn-primary" type="button" id="uploadConfirm" disabled>
+          <i class="fa-solid fa-paperclip"></i> Attach file
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================== TOASTS ===================== -->
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+
+  <!-- ===================== APP LOGIC ===================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* ------------------------------------------------------------------
+         Helpers
+         ------------------------------------------------------------------ */
+      const $  = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+      const esc = (v) => String(v).replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+
+      const extOf = (name) => (name.split('.').pop() || '').toLowerCase();
+
+      const fmtSize = (bytes) => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      };
+
+      const fmtDeadline = (d) =>
+        `${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ` +
+        `${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+
+      const fmtShort = (d) =>
+        d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+        d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+      const truncate = (s, n = 22) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+      /** Date `dayOffset` days from today at h:m (sample data stays relevant whenever the page is opened) */
+      const at = (dayOffset, h, m) => {
+        const d = new Date();
+        d.setDate(d.getDate() + dayOffset);
+        d.setHours(h, m, 0, 0);
+        return d;
+      };
+
+      /* ------------------------------------------------------------------
+         Constants
+         ------------------------------------------------------------------ */
+      const ACCEPTED_EXT = ['pdf', 'docx', 'xlsx', 'pptx', 'png', 'jpg', 'jpeg', 'zip'];
+      const IMAGE_EXT    = ['png', 'jpg', 'jpeg'];
+      const MAX_BYTES    = 25 * 1024 * 1024;
+
+      const URGENCY_RANK  = { red: 0, orange: 1, yellow: 2, green: 3 };
+      const URGENCY_LABEL = { red: 'Very urgent', orange: 'Urgent', yellow: 'Medium', green: 'Low urgency' };
+
+      const DEFAULT_PATH = ['Courses', 'Computer Engineering', 'SY 2026-2027', 'Assignments'];
+
+      /* Folder tree used by the Explorer-style location bar */
+      const TREE = {
+        'Courses': {
+          'Computer Engineering': {
+            'SY 2025-2026': { 'Assignments': {}, 'Projects': {} },
+            'SY 2026-2027': { 'Assignments': {}, 'Projects': {} },
+          },
+          'Electronics Engineering': {
+            'SY 2026-2027': { 'Assignments': {} },
+          },
+        },
+      };
+
+      /* ------------------------------------------------------------------
+         Data
+         ------------------------------------------------------------------ */
+      const tasks = [
+        {
+          id: 't1', committee: 'Committee on Internal Affairs', title: 'Project Proposal Drafting',
+          deadline: at(0, 23, 59),
+          description: 'Draft a two-page project proposal for the upcoming General Assembly. Cover the rationale, objectives, target participants, timeline and a preliminary budget.',
+          instructions: ['Use the attached proposal template.', 'Keep the document to a maximum of two pages.', 'Submit as PDF or DOCX.', 'Name the file Surname_ProjectProposal.'],
+          attachments: [{ name: 'Proposal_Template.docx', size: 86016 }, { name: 'Drafting_Guidelines.pdf', size: 412000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't2', committee: 'Secretariat', title: 'Minutes of the Meeting',
+          deadline: at(1, 9, 0),
+          description: 'Finalize and circulate the minutes of the last executive meeting, including action items and owners.',
+          instructions: ['Follow the standard minutes format.', 'List each action item with an owner and due date.', 'Attach the signed attendance sheet.'],
+          attachments: [{ name: 'Minutes_Format.docx', size: 54000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't3', committee: 'Public Relations Committee', title: 'Global Goals Week 2026',
+          deadline: at(2, 23, 59),
+          description: 'Prepare the campaign deck for Global Goals Week 2026, including the weekly theme, social media schedule and partner shout-outs.',
+          instructions: ['Use the organization brand kit.', 'Include a 7-day posting calendar.', 'Export slides as PPTX.'],
+          attachments: [{ name: 'Brand_Kit.zip', size: 3400000 }, { name: 'Campaign_Brief.pdf', size: 289000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't4', committee: 'Committee on Academic Affairs', title: 'Peer Tutoring Schedule',
+          deadline: at(5, 23, 59),
+          description: 'Compile the peer tutoring schedule for the second half of the term, pairing tutors with subjects and available time slots.',
+          instructions: ['Fill in the spreadsheet template.', 'Avoid overlapping slots for the same tutor.', 'Highlight subjects with no tutor assigned.'],
+          attachments: [{ name: 'Tutoring_Schedule.xlsx', size: 61000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't5', committee: 'Public Relations Committee', title: 'Global Goals Week 2026 Recap',
+          deadline: at(6, 23, 59),
+          description: 'Write a short recap of Global Goals Week with engagement numbers, photos and lessons learned for the next campaign.',
+          instructions: ['One page summary plus an image appendix.', 'Include reach and engagement metrics.', 'Submit as PDF.'],
+          attachments: [{ name: 'Recap_Outline.docx', size: 47000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't6', committee: 'Committee on Finance', title: 'Budget Liquidation Report',
+          deadline: at(12, 23, 59),
+          description: 'Liquidate the funds used for the last event. Attach official receipts and reconcile every expense against the approved budget.',
+          instructions: ['Scan all official receipts in a single ZIP.', 'Use the liquidation workbook.', 'Totals must match the approved budget.'],
+          attachments: [{ name: 'Liquidation_Workbook.xlsx', size: 98000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't7', committee: 'Committee on External Affairs', title: 'Sponsorship Letter Drafts',
+          deadline: at(20, 23, 59),
+          description: 'Draft sponsorship request letters for the next semester. Prepare three variants for local, regional and corporate partners.',
+          instructions: ['Use the formal letter template.', 'Tailor the benefits section for each partner type.', 'Have the draft reviewed by your committee head.'],
+          attachments: [{ name: 'Letter_Template.docx', size: 39000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't8', committee: 'Committee on Internal Affairs', title: 'Orientation Program Outline',
+          deadline: at(-3, 23, 59),
+          description: 'Outline the flow of the new-member orientation, including speakers, activities and time allocations.',
+          instructions: ['One page, table format.', 'Include a backup activity.'],
+          attachments: [{ name: 'Orientation_Reference.pdf', size: 221000 }],
+          draft: null,
+          submission: { name: 'Orientation_Outline.pdf', size: 238000, type: 'application/pdf', url: null },
+          submittedAt: at(-4, 18, 20),
+        },
+        {
+          id: 't9', committee: 'Committee on Finance', title: 'Collection Sheet',
+          deadline: at(4, 23, 59),
+          description: 'Update the membership fee collection sheet with all payments received this month.',
+          instructions: ['Use the shared workbook format.', 'Mark unpaid members in red.'],
+          attachments: [{ name: 'Collection_Sheet.xlsx', size: 72000 }],
+          draft: null,
+          submission: { name: 'Collection_Sheet_Oct.xlsx', size: 80500, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', url: null },
+          submittedAt: at(-1, 14, 5),
+        },
+        {
+          id: 't10', committee: 'Secretariat', title: 'Attendance Roster Update',
+          deadline: at(-2, 23, 59),
+          description: 'Update the attendance roster for all general meetings held this month.',
+          instructions: ['Use the roster spreadsheet.', 'Flag members with three or more absences.'],
+          attachments: [{ name: 'Roster_Template.xlsx', size: 44000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+        {
+          id: 't11', committee: 'Committee on External Affairs', title: 'Partner Org Directory',
+          deadline: at(-6, 23, 59),
+          description: 'Compile a directory of partner organizations with contact persons, emails and past collaborations.',
+          instructions: ['Include at least ten organizations.', 'Verify each contact email.'],
+          attachments: [{ name: 'Directory_Template.xlsx', size: 36000 }],
+          draft: null, submission: null, submittedAt: null,
+        },
+      ];
+
+      /* ------------------------------------------------------------------
+         Derived state
+         ------------------------------------------------------------------ */
+      const byId = (id) => tasks.find((t) => t.id === id);
+      const fileOf = (t) => t.submission || t.draft;
+
+      const statusOf = (t) => {
+        if (t.submission) return 'submitted';
+        return t.deadline.getTime() <= Date.now() ? 'missed' : 'pending';
+      };
+
+      const urgencyOf = (t) => {
+        const ms = t.deadline.getTime() - Date.now();
+        if (ms <= 0) return null;
+        const hours = ms / 36e5;
+        if (hours < 24)  return 'red';
+        if (hours < 72)  return 'orange';
+        if (hours < 168) return 'yellow';
+        return 'green';
+      };
+
+      const toneOf = (t) => {
+        const st = statusOf(t);
+        if (st === 'submitted') return 'done';
+        if (st === 'missed') return 'missed';
+        return urgencyOf(t);
+      };
+
+      const spanText = (ms) => {
+        const total = Math.floor(Math.abs(ms) / 60000);
+        const d = Math.floor(total / 1440);
+        const h = Math.floor((total % 1440) / 60);
+        const m = total % 60;
+        if (d > 0) return `${d}d ${h}h`;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+      };
+
+      const chipText = (t) => {
+        const st = statusOf(t);
+        if (st === 'submitted') return `Submitted ${fmtShort(t.submittedAt)}`;
+        const ms = t.deadline.getTime() - Date.now();
+        if (st === 'missed') return `Overdue by ${spanText(ms)}`;
+        return `${URGENCY_LABEL[urgencyOf(t)]} · due in ${spanText(ms)}`;
+      };
+
+      const signature = () => tasks.map((t) => `${t.id}:${statusOf(t)}:${toneOf(t)}`).join('|');
+
+      /* ------------------------------------------------------------------
+         UI state
+         ------------------------------------------------------------------ */
+      let currentStatus = 'pending';
+      let query = '';
+      let path = DEFAULT_PATH.slice();
+      let history = [path.slice()];
+      let historyIndex = 0;
+      let openTaskId = null;
+      let uploadTargetId = null;
+      let pendingFile = null;
+      let lastSignature = signature();
+
+      /* ------------------------------------------------------------------
+         Elements
+         ------------------------------------------------------------------ */
+      const taskList     = $('#taskList');
+      const folderGrid   = $('#folderGrid');
+      const emptyState   = $('#emptyState');
+      const emptyText    = $('#emptyText');
+      const tabsEl       = $('#tabs');
+      const crumbsEl     = $('#crumbs');
+      const searchInput  = $('#searchInput');
+      const navBack      = $('#navBack');
+      const navForward   = $('#navForward');
+      const navUp        = $('#navUp');
+      const taskModal    = $('#taskModal');
+      const taskModalBody = $('#taskModalBody');
+      const uploadModal  = $('#uploadModal');
+      const dropzone     = $('#dropzone');
+      const fileInput    = $('#fileInput');
+      const uploadError  = $('#uploadError');
+      const uploadChosen = $('#uploadChosen');
+      const uploadConfirm = $('#uploadConfirm');
+      const toasts       = $('#toasts');
+
+      /* ------------------------------------------------------------------
+         Toasts
+         ------------------------------------------------------------------ */
+      function toast(message, kind = 'info') {
+        const el = document.createElement('div');
+        el.className = `toast${kind === 'warn' ? ' is-warn' : ''}`;
+        el.textContent = message;
+        toasts.appendChild(el);
+        setTimeout(() => el.remove(), 3200);
+      }
+
+      /* ------------------------------------------------------------------
+         Explorer-style navigation
+         ------------------------------------------------------------------ */
+      const samePath = (a, b) => a.length === b.length && a.every((seg, i) => seg === b[i]);
+      const isTasksView = () => samePath(path, DEFAULT_PATH);
+
+      function nodeAt(p) {
+        let node = TREE;
+        for (const seg of p) {
+          node = node && node[seg];
+          if (!node) return null;
+        }
+        return node;
+      }
+
+      function navigate(newPath, push = true) {
+        if (samePath(newPath, path)) return;
+        path = newPath.slice();
+        if (push) {
+          history = history.slice(0, historyIndex + 1);
+          history.push(path.slice());
+          historyIndex = history.length - 1;
+        }
+        searchInput.value = '';
+        query = '';
+        render(true);
+      }
+
+      function renderCrumbs() {
+        crumbsEl.innerHTML = path.map((seg, i) => {
+          const last = i === path.length - 1;
+          return `
+            <li>
+              <button class="crumb" type="button" data-crumb="${i}"${last ? ' aria-current="page"' : ''}>${esc(seg)}</button>
+              ${last ? '' : '<i class="fa-solid fa-chevron-right crumb-sep" aria-hidden="true"></i>'}
+            </li>`;
+        }).join('');
+
+        navBack.disabled    = historyIndex === 0;
+        navForward.disabled = historyIndex >= history.length - 1;
+        navUp.disabled      = path.length <= 1;
+      }
+
+      crumbsEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-crumb]');
+        if (!btn) return;
+        navigate(path.slice(0, Number(btn.dataset.crumb) + 1));
+      });
+
+      navBack.addEventListener('click', () => {
+        if (historyIndex > 0) { historyIndex -= 1; navigate(history[historyIndex], false); }
+      });
+      navForward.addEventListener('click', () => {
+        if (historyIndex < history.length - 1) { historyIndex += 1; navigate(history[historyIndex], false); }
+      });
+      navUp.addEventListener('click', () => {
+        if (path.length > 1) navigate(path.slice(0, -1));
+      });
+
+      folderGrid.addEventListener('click', (e) => {
+        const tile = e.target.closest('[data-folder]');
+        if (tile) navigate([...path, tile.dataset.folder]);
+      });
+
+      /* ------------------------------------------------------------------
+         Filtering + sorting (MS Teams style: most urgent first)
+         ------------------------------------------------------------------ */
+      function visibleTasks(status) {
+        const q = query.toLowerCase();
+        return tasks
+          .filter((t) => statusOf(t) === status)
+          .filter((t) => !q || `${t.title} ${t.committee}`.toLowerCase().includes(q))
+          .sort((a, b) => {
+            if (status === 'pending') {
+              const diff = URGENCY_RANK[urgencyOf(a)] - URGENCY_RANK[urgencyOf(b)];
+              return diff || a.deadline - b.deadline;
+            }
+            if (status === 'submitted') return b.submittedAt - a.submittedAt;
+            return b.deadline - a.deadline;
+          });
+      }
+
+      tabsEl.addEventListener('click', (e) => {
+        const tab = e.target.closest('[data-status]');
+        if (!tab) return;
+        currentStatus = tab.dataset.status;
+        render(true);
+      });
+
+      tabsEl.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        const order = ['pending', 'submitted', 'missed'];
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        const next = order[(order.indexOf(currentStatus) + dir + order.length) % order.length];
+        currentStatus = next;
+        render(true);
+        $(`[data-status="${next}"]`, tabsEl).focus();
+        e.stopPropagation();
+      });
+
+      searchInput.addEventListener('input', () => {
+        query = searchInput.value.trim();
+        render(false);
+      });
+
+      /* ------------------------------------------------------------------
+         Card rendering
+         ------------------------------------------------------------------ */
+      function previewHtml(file) {
+        if (!file) return '<span class="preview-empty">No file</span>';
+        const ext = extOf(file.name);
+        if (file.url && IMAGE_EXT.includes(ext)) {
+          return `<img src="${esc(file.url)}" alt="Preview of ${esc(file.name)}" />`;
+        }
+        return `<i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>.${esc(ext.toUpperCase())}</span>`;
+      }
+
+      function chipsHtml(t) {
+        return t.attachments.map((f) =>
+          `<li class="file-chip"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>${esc(f.name)}</li>`
+        ).join('');
+      }
+
+      function extraHtml(t) {
+        const st = statusOf(t);
+        const file = fileOf(t);
+
+        if (st === 'pending') {
+          return `
+            <div class="extra-grid">
+              <div>
+                <p class="extra-label">Details</p>
+                <p class="task-desc">${esc(t.description)}</p>
+                <ul class="file-chips" aria-label="Attached files">${chipsHtml(t)}</ul>
+                <button class="btn-submit" type="button" data-action="submit" data-id="${t.id}">Submit</button>
+              </div>
+              <div>
+                <p class="extra-label">File Preview</p>
+                <div class="preview-box">${previewHtml(file)}</div>
+                <p class="extra-label">Submission File:</p>
+                <button class="btn-attach" type="button" data-action="attach" data-id="${t.id}">
+                  ${file ? esc(truncate(file.name)) : 'Attach/Upload File'}
+                </button>
+              </div>
+            </div>`;
+        }
+
+        if (st === 'submitted') {
+          return `
+            <div class="extra-grid">
+              <div>
+                <p class="extra-label">Details</p>
+                <p class="task-desc">${esc(t.description)}</p>
+                <p class="note-text"><strong>Submitted:</strong> ${esc(fmtDeadline(t.submittedAt))}</p>
+                ${t.deadline.getTime() > Date.now()
+                  ? `<button class="btn-ghost" type="button" data-action="unsubmit" data-id="${t.id}">Unsubmit</button>`
+                  : ''}
+              </div>
+              <div>
+                <p class="extra-label">Submitted File</p>
+                <div class="preview-box">${previewHtml(file)}</div>
+                <p class="extra-label">${esc(truncate(file.name))}</p>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div class="extra-grid">
+            <div>
+              <p class="extra-label">Details</p>
+              <p class="task-desc">${esc(t.description)}</p>
+              <p class="note-text"><strong>The deadline has passed.</strong> Contact your committee head to request a late submission.</p>
+            </div>
+            <div>
+              <p class="extra-label">File Preview</p>
+              <div class="preview-box">${previewHtml(null)}</div>
+            </div>
+          </div>`;
+      }
+
+      function cardHtml(t, rank, animate) {
+        const tone = toneOf(t);
+        const anim = animate ? ` reveal stagger-${Math.min(rank - 1, 12)}` : '';
+        return `
+          <li class="task-card tone-${tone}${anim}" data-id="${t.id}" tabindex="0" aria-label="${esc(t.title)}, ${esc(chipText(t))}">
+            <div class="task-rank" aria-hidden="true">${rank}</div>
+            <div class="task-body">
+              <p class="task-committee">${esc(t.committee)}</p>
+              <h3 class="task-title">${esc(t.title)}</h3>
+              <p class="task-deadline">Deadline: ${esc(fmtDeadline(t.deadline))}</p>
+              <span class="task-chip" data-chip="${t.id}">${esc(chipText(t))}</span>
+              <div class="task-extra"><div class="task-extra-inner">${extraHtml(t)}</div></div>
+              <button class="task-open" type="button" data-action="open" data-id="${t.id}" aria-label="Open full view of ${esc(t.title)}">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </li>`;
+      }
+
+      /* ------------------------------------------------------------------
+         Main render
+         ------------------------------------------------------------------ */
+      function render(animate) {
+        renderCrumbs();
+
+        const tasksView = isTasksView();
+        tabsEl.hidden = !tasksView;
+        taskList.hidden = !tasksView;
+        folderGrid.hidden = true;
+        emptyState.hidden = true;
+
+        if (tasksView) {
+          ['pending', 'submitted', 'missed'].forEach((s) => {
+            const count = visibleTasks(s).length;
+            $(`[data-count="${s}"]`).textContent = count;
+            $(`[data-status="${s}"]`).setAttribute('aria-selected', String(s === currentStatus));
+          });
+
+          const list = visibleTasks(currentStatus);
+          taskList.innerHTML = list.map((t, i) => cardHtml(t, i + 1, animate)).join('');
+
+          if (!list.length) {
+            taskList.hidden = true;
+            emptyState.hidden = false;
+            const labels = { pending: 'No pending assignments.', submitted: 'You have not submitted anything yet.', missed: 'No missed deadlines. Nice work!' };
+            emptyText.textContent = query ? `No assignments match “${query}”.` : labels[currentStatus];
+          }
+          return;
+        }
+
+        /* Folder view */
+        const node = nodeAt(path) || {};
+        const q = query.toLowerCase();
+        const names = Object.keys(node).filter((n) => !q || n.toLowerCase().includes(q));
+
+        if (names.length) {
+          folderGrid.hidden = false;
+          folderGrid.innerHTML = names.map((n, i) => `
+            <button class="folder-tile${animate ? ` reveal stagger-${Math.min(i, 12)}` : ''}" type="button" data-folder="${esc(n)}">
+              <i class="fa-solid fa-folder" aria-hidden="true"></i>
+              <span>${esc(n)}</span>
+            </button>`).join('');
+        } else {
+          emptyState.hidden = false;
+          emptyText.textContent = query
+            ? `No folders match “${query}”.`
+            : (Object.keys(node).length === 0 ? 'This folder is empty.' : 'Nothing here.');
+        }
+      }
+
+      /* ------------------------------------------------------------------
+         Actions (cards + modal share one handler)
+         ------------------------------------------------------------------ */
+      function submitTask(id) {
+        const t = byId(id);
+        if (!t || statusOf(t) !== 'pending') return;
+        if (!t.draft) {
+          toast('Attach a file before submitting.', 'warn');
+          openUpload(id);
+          return;
+        }
+        t.submission = t.draft;
+        t.draft = null;
+        t.submittedAt = new Date();
+        toast(`“${t.title}” submitted.`);
+        refresh();
+      }
+
+      function unsubmitTask(id) {
+        const t = byId(id);
+        if (!t || !t.submission || t.deadline.getTime() <= Date.now()) return;
+        t.draft = t.submission;
+        t.submission = null;
+        t.submittedAt = null;
+        toast(`“${t.title}” moved back to Pending.`);
+        refresh();
+      }
+
+      function removeDraft(id) {
+        const t = byId(id);
+        if (!t || !t.draft) return;
+        if (t.draft.url) URL.revokeObjectURL(t.draft.url);
+        t.draft = null;
+        refresh();
+      }
+
+      function downloadAttachment(id, index) {
+        const t = byId(id);
+        const f = t && t.attachments[index];
+        if (!f) return;
+        const text = `${f.name}\n${t.title} – ${t.committee}\n\nPreview copy generated by the MimiLuxx Task Management demo.\n`;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${f.name.replace(/\.[^.]+$/, '')}-preview.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast(`Downloaded preview of ${f.name}`);
+      }
+
+      function handleAction(e) {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const { action, id } = btn.dataset;
+
+        switch (action) {
+          case 'open':        openTask(id); break;
+          case 'attach':      openUpload(id); break;
+          case 'submit':      submitTask(id); break;
+          case 'unsubmit':    unsubmitTask(id); break;
+          case 'remove-draft': removeDraft(id); break;
+          case 'download':    downloadAttachment(id, Number(btn.dataset.index)); break;
+          case 'close-task':  taskModal.close(); break;
+          case 'close-upload': uploadModal.close(); break;
+          default: break;
+        }
+      }
+
+      taskList.addEventListener('click', handleAction);
+      taskModalBody.addEventListener('click', handleAction);
+      uploadModal.addEventListener('click', (e) => {
+        if (e.target === uploadModal) uploadModal.close(); // backdrop click
+        else handleAction(e);
+      });
+
+      /* ------------------------------------------------------------------
+         Full-view modal
+         ------------------------------------------------------------------ */
+      function modalHtml(t) {
+        const st = statusOf(t);
+        const tone = toneOf(t);
+        const file = fileOf(t);
+
+        let submission;
+        if (st === 'submitted') {
+          submission = `
+            <div class="submission-box">
+              <div class="preview-box">${previewHtml(file)}</div>
+              <div class="submission-info">
+                <p><strong>${esc(file.name)}</strong> · ${fmtSize(file.size)}</p>
+                <p>Submitted ${esc(fmtDeadline(t.submittedAt))}</p>
+                <div class="action-row">
+                  ${t.deadline.getTime() > Date.now()
+                    ? `<button class="btn-ghost" type="button" data-action="unsubmit" data-id="${t.id}"><i class="fa-solid fa-rotate-left"></i> Unsubmit</button>`
+                    : ''}
+                </div>
+              </div>
+            </div>`;
+        } else if (st === 'missed') {
+          submission = `<p class="modal-text">The deadline for this assignment has passed and nothing was submitted. Contact your committee head to request a late submission.</p>`;
+        } else {
+          submission = `
+            <div class="submission-box">
+              <div class="preview-box">${previewHtml(file)}</div>
+              <div class="submission-info">
+                <p>${file ? `<strong>${esc(file.name)}</strong> · ${fmtSize(file.size)}` : 'No file attached yet.'}</p>
+                <div class="action-row">
+                  <button class="btn-ghost" type="button" data-action="attach" data-id="${t.id}">
+                    <i class="fa-solid fa-upload"></i> ${file ? 'Replace file' : 'Upload file'}
+                  </button>
+                  ${file ? `<button class="btn-ghost" type="button" data-action="remove-draft" data-id="${t.id}"><i class="fa-regular fa-trash-can"></i> Remove</button>` : ''}
+                  <button class="btn-submit" type="button" data-action="submit" data-id="${t.id}">Submit</button>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div class="modal-head tone-${tone}">
+            <p class="modal-kicker">${esc(t.committee)}</p>
+            <h2 class="modal-title" id="taskModalTitle">${esc(t.title)}</h2>
+            <div class="modal-meta">
+              <span class="badge"><i class="fa-regular fa-clock"></i> ${esc(fmtDeadline(t.deadline))}</span>
+              <span class="badge" data-chip="${t.id}">${esc(chipText(t))}</span>
+            </div>
+            <button class="modal-close" type="button" data-action="close-task" aria-label="Close full view">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="modal-content">
+            <section class="modal-section">
+              <h3 class="section-title">Description</h3>
+              <p class="modal-text">${esc(t.description)}</p>
+            </section>
+            <section class="modal-section">
+              <h3 class="section-title">Instructions</h3>
+              <ol class="steps">${t.instructions.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
+            </section>
+            <section class="modal-section">
+              <h3 class="section-title">Attached files</h3>
+              <ul class="attach-list">
+                ${t.attachments.map((f, i) => `
+                  <li class="attach-item">
+                    <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                    <span class="attach-name">${esc(f.name)}</span>
+                    <span class="attach-size">${fmtSize(f.size)}</span>
+                    <button class="link-btn" type="button" data-action="download" data-id="${t.id}" data-index="${i}">Download</button>
+                  </li>`).join('')}
+              </ul>
+            </section>
+            <section class="modal-section">
+              <h3 class="section-title">Your submission</h3>
+              ${submission}
+            </section>
+          </div>`;
+      }
+
+      function renderTaskModal() {
+        const t = byId(openTaskId);
+        if (t) taskModalBody.innerHTML = modalHtml(t);
+      }
+
+      function openTask(id) {
+        openTaskId = id;
+        renderTaskModal();
+        if (!taskModal.open) taskModal.showModal();
+      }
+
+      taskModal.addEventListener('click', (e) => { if (e.target === taskModal) taskModal.close(); });
+      taskModal.addEventListener('close', () => { openTaskId = null; });
+
+      /* ------------------------------------------------------------------
+         Upload modal (drag & drop + browse)
+         ------------------------------------------------------------------ */
+      function resetUpload() {
+        pendingFile = null;
+        fileInput.value = '';
+        uploadError.hidden = true;
+        uploadChosen.hidden = true;
+        uploadConfirm.disabled = true;
+        dropzone.classList.remove('is-over');
+      }
+
+      function openUpload(id) {
+        const t = byId(id);
+        if (!t) return;
+        if (statusOf(t) !== 'pending') {
+          toast('This assignment is no longer accepting files.', 'warn');
+          return;
+        }
+        uploadTargetId = id;
+        resetUpload();
+        $('#uploadTarget').textContent = `${t.title} · ${t.committee}`;
+        if (!uploadModal.open) uploadModal.showModal();
+      }
+
+      function showUploadError(msg) {
+        uploadError.textContent = msg;
+        uploadError.hidden = false;
+        uploadChosen.hidden = true;
+        uploadConfirm.disabled = true;
+        pendingFile = null;
+      }
+
+      function acceptFile(file, extraNote) {
+        const ext = extOf(file.name);
+        if (!ACCEPTED_EXT.includes(ext)) {
+          showUploadError(`“.${ext || 'unknown'}” files are not supported. Use PDF, DOCX, XLSX, PPTX, PNG, JPG or ZIP.`);
+          return;
+        }
+        if (file.size === 0) { showUploadError('That file is empty.'); return; }
+        if (file.size > MAX_BYTES) { showUploadError(`That file is ${fmtSize(file.size)}. The limit is 25 MB.`); return; }
+
+        pendingFile = file;
+        uploadError.hidden = !extraNote;
+        uploadError.textContent = extraNote || '';
+
+        const thumb = $('#uploadThumb');
+        if (IMAGE_EXT.includes(ext)) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.alt = '';
+          img.addEventListener('load', () => URL.revokeObjectURL(img.src), { once: true });
+          thumb.replaceChildren(img);
+        } else {
+          const icon = document.createElement('i');
+          icon.className = 'fa-solid fa-file-lines file-ico';
+          thumb.replaceChildren(icon);
+        }
+        $('#uploadChosenName').textContent = file.name;
+        $('#uploadChosenSize').textContent = fmtSize(file.size);
+        uploadChosen.hidden = false;
+        uploadConfirm.disabled = false;
+      }
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) acceptFile(fileInput.files[0]);
+      });
+
+      ['dragenter', 'dragover'].forEach((evt) =>
+        dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('is-over'); })
+      );
+      ['dragleave', 'dragend'].forEach((evt) =>
+        dropzone.addEventListener(evt, () => dropzone.classList.remove('is-over'))
+      );
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('is-over');
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+        acceptFile(files[0], files.length > 1 ? 'Only one file can be attached. Using the first one.' : '');
+      });
+
+      $('#uploadClear').addEventListener('click', resetUpload);
+
+      uploadConfirm.addEventListener('click', () => {
+        const t = byId(uploadTargetId);
+        if (!t || !pendingFile) return;
+        if (t.draft && t.draft.url) URL.revokeObjectURL(t.draft.url);
+
+        const ext = extOf(pendingFile.name);
+        t.draft = {
+          name: pendingFile.name,
+          size: pendingFile.size,
+          type: pendingFile.type,
+          url: IMAGE_EXT.includes(ext) ? URL.createObjectURL(pendingFile) : null,
+        };
+        uploadModal.close();
+        toast(`Attached ${pendingFile.name}. Press Submit when you're ready.`);
+        refresh();
+      });
+
+      uploadModal.addEventListener('close', resetUpload);
+
+      /* ------------------------------------------------------------------
+         Refresh helpers + live clock
+         ------------------------------------------------------------------ */
+      function refresh() {
+        render(false);
+        if (taskModal.open) renderTaskModal();
+        lastSignature = signature();
+      }
+
+      setInterval(() => {
+        const sig = signature();
+        if (sig !== lastSignature) {
+          lastSignature = sig;
+          refresh(); // a card changed urgency or status: re-sort
+          return;
+        }
+        $$('[data-chip]').forEach((el) => {
+          const t = byId(el.dataset.chip);
+          if (t) el.textContent = chipText(t);
+        });
+      }, 30000);
+
+      /* ------------------------------------------------------------------
+         Dock navigation (only the Task page exists in this demo)
+         ------------------------------------------------------------------ */
+      $$('[data-nav]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const label = btn.dataset.nav;
+          toast(label === 'Task Page' ? 'You are already on the Task Page.' : `${label} isn't part of this demo.`);
+        });
+      });
+
+      /* ------------------------------------------------------------------
+         Init
+         ------------------------------------------------------------------ */
+      render(true);
+    })();
+  </script>
+</body>
+</html>
