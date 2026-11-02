@@ -1,4 +1,87 @@
 @import "tailwindcss";
+@theme { --color-brand: #ED1C24; --color-ink: #06080A; }
+
+/* ==========================================================================
+   MimiLuxx – Task Dashboard  ·  styles.css
+   Layout and colour are Tailwind utility classes in index.html. This file only
+   holds what utilities cannot express: tone tokens, keyframes, scrollbars.
+
+   In a Next.js (Tailwind v4) project, paste this below `@import "tailwindcss";`
+   in app/globals.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   1. Tokens
+   ------------------------------------------------------------------------- */
+:root {
+  --brand: var(--color-brand);
+  --ink: var(--color-ink);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Priority queue tones. Any element with data-tone="…" exposes --tone and
+   --tone-ink, which the utilities read as bg-[var(--tone)] etc.            */
+[data-tone="red"]    { --tone: #9b0000; --tone-ink: #ffffff; } /* Urgent: 2 days or less   */
+[data-tone="orange"] { --tone: #f25c05; --tone-ink: #ffffff; } /* High:   within 5 days    */
+[data-tone="yellow"] { --tone: #a8ad00; --tone-ink: #ffffff; } /* Medium: within 7 days    */
+[data-tone="green"]  { --tone: #2f9e44; --tone-ink: #ffffff; } /* Low:    more than 7 days */
+[data-tone="done"]   { --tone: #334155; --tone-ink: #ffffff; } /* Submitted                */
+[data-tone="missed"] { --tone: #6b7280; --tone-ink: #ffffff; } /* Did not submit           */
+
+/* -------------------------------------------------------------------------
+   2. Keyframes + entrance classes
+   ------------------------------------------------------------------------- */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Staggered by the --i index each element carries */
+.reveal {
+  animation: rise-in 0.65s var(--ease-pop) backwards;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+.reveal-pop {
+  animation: pop-in 0.7s var(--ease-pop) 0.2s backwards;
+}
+
+/* -------------------------------------------------------------------------
+   3. Scrollbars
+   ------------------------------------------------------------------------- */
+.scroll-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #222 #e5e5e5;
+}
+.scroll-dark::-webkit-scrollbar { width: 10px; }
+.scroll-dark::-webkit-scrollbar-track { background: #e5e5e5; border-radius: 9999px; }
+.scroll-dark::-webkit-scrollbar-thumb { background: #222; border-radius: 9999px; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* -------------------------------------------------------------------------
+   4. Reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-pop,
+  dialog[open],
+  .toast { animation: none !important; }
+
+  * { transition-duration: 0.01ms !important; }
+}
+
 
 :root {
   --background: #ffffff;
@@ -12,18 +95,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* MimiLuxx palette + animations (used by the Settings page) */
-@theme {
-  --color-brand: #ED1C24;
-  --color-ink: #06080A;
-  --animate-fade-in: fade-in 0.3s ease both;
-  --animate-pop-in: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-toast-in: toast-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  @keyframes pop-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
-  @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -35,4 +106,177 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* MimiLuxx US10: flagged announcements UI.
+   SOURCE (Tailwind v4, uses @apply). In Next.js paste everything below the first
+   @import line into app/globals.css. announcement-flag-ui.css is the compiled copy. */
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #ED1C24;
+  --color-ink: #06080A;
+  --animate-rise-in: rise-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-pop-in: pop-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-ping-soft: ping-soft 1.6s ease-out infinite;
+  --animate-bar-glow: bar-glow 2.2s ease-in-out infinite;
+  @keyframes rise-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(-6px) scale(0.94); } to { opacity: 1; transform: none; } }
+  @keyframes ping-soft { 0% { box-shadow: 0 0 0 0 rgb(237 28 36 / 0.55); } 80%, 100% { box-shadow: 0 0 0 9px rgb(237 28 36 / 0); } }
+  @keyframes bar-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+}
+
+@layer components {
+  .panel { @apply rounded-2xl border border-ink/15 bg-white p-5 shadow-[0_2px_0_rgba(6,8,10,0.06)] sm:p-7; }
+  .label { @apply mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70; }
+  .field { @apply w-full rounded-lg border border-ink/25 bg-white px-3 text-sm outline-none transition focus:border-ink focus:ring-4 focus:ring-brand/20 aria-[invalid=true]:border-brand; }
+  .field-line { @apply h-11; }
+
+  /* buttons */
+  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[13px] font-bold transition duration-200 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply bg-brand text-white hover:brightness-90; }
+  .btn-outline { @apply border border-ink/25 bg-white text-ink hover:border-ink; }
+  .btn-quiet { @apply bg-transparent text-ink/70 hover:text-ink; }
+
+  /* switch (button role="switch") */
+  .switch { @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-ink/25 transition-colors after:absolute after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition-transform aria-checked:bg-brand aria-checked:after:translate-x-5 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+
+  /* priority picker: radio cards */
+  .prio-option { @apply flex cursor-pointer items-center gap-2 rounded-xl border border-ink/20 px-3 py-3 text-sm font-bold transition hover:border-ink has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-white has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink; }
+  .prio-option input { @apply sr-only; }
+  .prio-dot { @apply size-2.5 rounded-full bg-ink/30; }
+  .prio-option[data-level="critical"] .prio-dot { @apply bg-brand; }
+  .prio-option[data-level="high"] .prio-dot { @apply bg-ink ring-1 ring-ink/40; }
+  .prio-option:has(:checked) .prio-dot { @apply ring-2 ring-white/60; }
+
+  /* badges */
+  .badge { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold whitespace-nowrap; }
+  .badge-critical { @apply bg-brand text-white; }
+  .badge-high { @apply bg-ink text-white; }
+  .badge-normal { @apply border border-ink/25 bg-white text-ink/70; }
+  .badge-active { @apply border border-brand text-brand bg-white; }
+  .badge-active::before { content: ""; @apply size-2 rounded-full bg-brand animate-ping-soft; }
+  .badge-scheduled { @apply border border-ink bg-white text-ink; }
+  .badge-disabled { @apply border border-ink/20 bg-ink/5 text-ink/50; }
+  .badge-draft { @apply border border-dashed border-ink/40 bg-white text-ink/60; }
+
+  /* list header chips */
+  .chip { @apply inline-flex h-9 items-center gap-2 rounded-full border border-ink/20 bg-white px-4 text-[13px] font-bold transition hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white; }
+  .sort-step { @apply inline-flex items-center gap-1.5 rounded-lg bg-ink/5 px-2.5 py-1 text-xs font-bold text-ink; }
+  .sort-step b { @apply grid size-4 place-items-center rounded-full bg-ink text-[10px] text-white; }
+
+  /* flagged item cards */
+  .flag-card { @apply relative animate-rise-in rounded-2xl border border-ink/15 bg-white p-5 pl-7 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
+  .flag-card::before { content: ""; @apply absolute inset-y-3 left-0 w-1.5 rounded-r-full bg-ink/15; }
+  .flag-card[data-priority="critical"]::before { @apply bg-brand; }
+  .flag-card[data-priority="high"]::before { @apply bg-ink; }
+  .flag-card[data-priority="critical"][data-status="active"]::before { @apply animate-bar-glow; }
+  .flag-card[data-pinned="true"] { @apply border-ink; }
+  .flag-card[data-status="disabled"] .flag-body { @apply opacity-55; }
+  .flag-card[data-status="disabled"] h3 { @apply line-through decoration-ink/40; }
+  .pin-tag { @apply inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold text-white; }
+
+  /* quick-action menu: native <details>, so it opens with no JavaScript */
+  .menu { @apply relative; }
+  .menu > summary { @apply grid size-9 cursor-pointer list-none place-items-center rounded-full border border-transparent transition hover:border-ink/25 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+  .menu > summary::-webkit-details-marker { display: none; }
+  .menu[open] > summary { @apply border-ink bg-ink text-white; }
+  .menu-panel { @apply absolute right-0 z-30 mt-2 w-52 origin-top-right animate-pop-in rounded-xl border border-ink/15 bg-white p-1.5 shadow-xl; }
+  .menu-item { @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-bold transition hover:bg-ink/5; }
+  .menu-item-danger { @apply text-brand hover:bg-brand/10; }
+  .menu-sep { @apply my-1 h-px bg-ink/10; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}
+
+
+/* MimiLuxx US08: approve / reject workflow UI.
+   SOURCE (Tailwind v4, uses @apply). In Next.js paste everything below the first
+   @import line into app/globals.css. approve-reject-workflow.css is the compiled copy. */
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #ED1C24;
+  --color-ink: #06080A;
+  --animate-rise-in: rise-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-drop-in: drop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-stamp-in: stamp-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-ping-soft: ping-soft 1.6s ease-out infinite;
+  --animate-shake: shake 0.35s ease both;
+  @keyframes rise-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes drop-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  @keyframes stamp-in { from { opacity: 0; transform: scale(1.35) rotate(-3deg); } to { opacity: 1; transform: none; } }
+  @keyframes ping-soft { 0% { box-shadow: 0 0 0 0 rgb(237 28 36 / 0.55); } 80%, 100% { box-shadow: 0 0 0 9px rgb(237 28 36 / 0); } }
+  @keyframes shake { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+}
+
+@layer components {
+  .panel { @apply rounded-2xl border border-ink/15 bg-white p-5 shadow-[0_2px_0_rgba(6,8,10,0.06)] sm:p-7; }
+  .label { @apply mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70; }
+  .field { @apply w-full rounded-lg border border-ink/25 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-ink focus:ring-4 focus:ring-brand/20 aria-[invalid=true]:border-brand; }
+
+  /* preview-as switch */
+  .seg { @apply inline-flex rounded-full border border-ink/20 bg-white p-1; }
+  .seg-btn { @apply rounded-full px-4 py-2 text-[13px] font-bold text-ink/70 transition hover:text-ink aria-pressed:bg-ink aria-pressed:text-white focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+
+  /* status badges */
+  .badge { @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap; }
+  .badge-pending { @apply border border-ink bg-white text-ink; }
+  .badge-pending::before { content: ""; @apply size-2 rounded-full bg-brand animate-ping-soft; }
+  .badge-approved { @apply bg-ink text-white animate-stamp-in; }
+  .badge-approved::before { content: "\2713"; }
+  .badge-rejected { @apply bg-brand text-white animate-stamp-in; }
+  .badge-rejected::before { content: "\2715"; }
+
+  /* buttons */
+  .btn { @apply inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold transition duration-200 active:scale-95 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+  .btn-approve { @apply bg-ink text-white hover:bg-ink/85 hover:shadow-lg; }
+  .btn-reject { @apply bg-brand text-white hover:brightness-90 hover:shadow-lg; }
+  .btn-outline { @apply border border-ink/25 bg-white text-ink hover:border-ink; }
+  .btn[aria-disabled="true"] { @apply cursor-not-allowed border border-ink/15 bg-ink/5 text-ink/40 shadow-none hover:bg-ink/5 hover:shadow-none hover:brightness-100 active:scale-100; }
+  .lock { @apply hidden size-4; }
+  .btn[aria-disabled="true"] .lock { @apply block; }
+
+  /* tooltip (shows on hover and keyboard focus) */
+  .tip-wrap { @apply relative inline-flex; }
+  .tip { @apply pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-2 w-60 -translate-x-1/2 rounded-lg bg-ink px-3 py-2 text-center text-xs font-bold text-white opacity-0 shadow-xl transition duration-150; }
+  .tip::after { content: ""; @apply absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-ink; }
+  .tip-wrap:hover .tip, .tip-wrap:focus-within .tip { @apply visible opacity-100; }
+
+  /* request card */
+  .doc-chip { @apply inline-flex items-center gap-2 rounded-lg border border-ink/15 bg-ink/5 px-3 py-2 text-sm font-bold; }
+  .guard-banner { @apply flex items-start gap-3 rounded-xl border px-4 py-3 text-sm; }
+  .guard-banner[data-mode="signatory"] { @apply border-ink/15 bg-white; }
+  .guard-banner[data-mode="viewer"] { @apply border-ink bg-ink text-white; }
+
+  /* rejection drawer */
+  .drawer { @apply animate-drop-in rounded-xl border border-brand/50 bg-white p-4; }
+
+  /* decision result */
+  .decision { @apply animate-stamp-in rounded-xl border-l-8 bg-ink/5 p-4; }
+  .decision[data-state="approved"] { @apply border-ink; }
+  .decision[data-state="rejected"] { @apply border-brand; }
+  .reason-quote { @apply mt-3 rounded-lg border border-brand/30 bg-white p-3 text-sm italic; }
+
+  /* audit trail */
+  .trail { @apply grid; }
+  .trail > li { @apply relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 pb-6 last:pb-0; }
+  .trail > li:not(:last-child)::before { content: ""; @apply absolute top-8 bottom-0 left-4 w-0.5 -translate-x-1/2 bg-ink/15; }
+  .trail > li[data-state="done"]:not(:last-child)::before, .trail > li[data-state="approved"]:not(:last-child)::before { @apply bg-ink; }
+  .node { @apply grid size-8 place-items-center rounded-full border-2 border-ink/20 bg-white text-xs font-extrabold text-ink/50; }
+  .node::after { content: attr(data-n); }
+  [data-state="done"] .node, [data-state="approved"] .node { @apply border-ink bg-ink text-white; }
+  [data-state="done"] .node::after, [data-state="approved"] .node::after { content: "\2713"; }
+  [data-state="active"] .node { @apply border-brand bg-white text-brand animate-ping-soft; }
+  [data-state="rejected"] .node { @apply border-brand bg-brand text-white; }
+  [data-state="rejected"] .node::after { content: "\2715"; }
+  [data-state="rejected"] .trail-title { @apply text-brand; }
+  [data-state="upcoming"] .trail-title { @apply text-ink/40; }
+  .trail-fresh { @apply animate-rise-in; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
 }
