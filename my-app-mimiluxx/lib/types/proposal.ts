@@ -1,10 +1,12 @@
+import type { UserRole } from "@/lib/types/roles";
+
 export type ProposalStatus = "pending" | "approved" | "rejected";
 
 export type ApprovalStage = {
   id: string;
   proposal_id: string;
   stage_order: number;
-  approver_role: "Committee Lead" | "Exec Approver";
+  approver_role: UserRole;
   status: ProposalStatus;
   approved_by: string | null;
   approved_at: string | null;
