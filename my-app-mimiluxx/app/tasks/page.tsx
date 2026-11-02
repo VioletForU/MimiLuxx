@@ -1,6 +1,7 @@
   import Link from "next/link";
   import { createClient } from "@/lib/supabase/server";
   import DeleteButton from "./DeleteButton";
+  import CommentThread from "@/components/CommentThread";
 
   export default async function TasksPage() {
     const supabase = await createClient();
@@ -50,6 +51,7 @@
               </Link>
               <DeleteButton id={task.id} />
               </div>
+              <CommentThread targetType="task" targetId={task.id} />
             </li>
           ))}
         </ul>
