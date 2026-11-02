@@ -1,5 +1,5 @@
-﻿import Link from "next/link";
-import LogoutButton from "./LogoutButton";
+import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 import type { UserRole } from "@/lib/types/roles";
 
 export default function AppNav({ role }: { role: UserRole }) {
@@ -15,6 +15,7 @@ export default function AppNav({ role }: { role: UserRole }) {
         <Link href="/dashboard" style={{ fontWeight: 700 }}>MimiLuxx</Link>
         <Link href="/dashboard">Dashboard</Link>
         <Link href="/tasks">All Tasks</Link>
+        <Link href="/settings">Settings</Link>
         {role === "Exec Approver" && <Link href="/admin/users">Admin</Link>}
       </div>
       <LogoutButton />

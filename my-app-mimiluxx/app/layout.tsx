@@ -2,7 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
-import AppNav from "@/components/AppNav";
+import AppNav from "@/components/app_navigation/AppNav";
 import type { UserRole } from "@/lib/types/roles";
 
 const geistSans = Geist({
