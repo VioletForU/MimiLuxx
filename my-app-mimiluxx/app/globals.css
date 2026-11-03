@@ -280,3 +280,72 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
 }
+
+/* Dashboard "Recent" table scrollbar (from public/main_dashboard_page.html) */
+.recent-scroll::-webkit-scrollbar { width: 9px; }
+.recent-scroll::-webkit-scrollbar-track { background: #D5D7DA; border-radius: 9999px; }
+.recent-scroll::-webkit-scrollbar-thumb { background: #4A4D52; border-radius: 9999px; }
+.recent-scroll::-webkit-scrollbar-thumb:hover { background: #2E3033; }
+
+/* ==========================================================================
+   Org carousel (ported from public/community_pages.css)
+   ========================================================================== */
+.org-carousel {
+  --card-w: clamp(300px, 34vw, 560px);
+  --card-h: calc(var(--card-w) * 0.83);
+  --slot-w: calc(var(--card-w) * 0.8);
+}
+.carousel-track {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: calc(var(--card-w) * 0.3);
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+.carousel-track::before,
+.carousel-track::after { content: ""; flex: 0 0 calc(50% - var(--slot-w) / 2); }
+.carousel-slot {
+  --s: 0.54;
+  position: relative;
+  flex: 0 0 var(--slot-w);
+  height: var(--card-h);
+  scroll-snap-align: center;
+  animation: pop-in 0.8s var(--ease-pop) calc(0.2s + var(--i, 0) * 0.1s) both;
+}
+.org-card {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  transform: scale(var(--s));
+  transform-origin: center bottom;
+  will-change: transform;
+  border-radius: calc(var(--card-w) * 0.022);
+  background: linear-gradient(to bottom, var(--color-ink) 0 25%, var(--color-brand) 25% 100%);
+  display: block;
+  text-decoration: none;
+  outline: none;
+}
+.org-card:focus-visible { box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--color-brand); }
+.org-card__name {
+  position: absolute; left: 5%; bottom: 5%; max-width: 52%;
+  color: #fff; font-weight: 700; font-size: calc(var(--card-w) * 0.085);
+  line-height: 1.02; letter-spacing: -0.01em; z-index: 2;
+}
+.org-card__art {
+  position: absolute; right: -1%; bottom: 0; height: 128%; max-width: 64%;
+  width: auto; object-fit: contain; object-position: bottom right;
+  pointer-events: none; user-select: none; z-index: 1;
+}
+.carousel-arrow { transition: transform 0.2s var(--ease-pop), opacity 0.2s ease, background-color 0.2s ease; }
+.carousel-arrow:hover:not(:disabled) { transform: translateY(-50%) scale(1.12); background-color: var(--color-brand); color: #fff; }
+.carousel-arrow:active:not(:disabled) { transform: translateY(-50%) scale(0.95); }
+.carousel-arrow:disabled { opacity: 0.3; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .carousel-slot { animation: none; } }
