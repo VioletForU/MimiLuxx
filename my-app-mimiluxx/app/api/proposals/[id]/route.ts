@@ -117,14 +117,34 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const newStatus = action === "approve" ? "approved" : "rejected";
 
-  const { error: updateStageError } = await supabase
+  const reason =
+    action === "reject" && typeof body.reason === "string" ? body.reason.trim().slice(0, 300) : "";
+  if (action === "reject" && reason.length < 10) {
+    return NextResponse.json(
+      { error: "Please give a reason of at least 10 characters." },
+      { status: 400 }
+    );
+  }
+
+  const stageUpdate = {
+    status: newStatus,
+    approved_by: user.id,
+    approved_at: new Date().toISOString(),
+  };
+
+  // rejection_reason comes from supabase/migrations/003_integration_tables.sql.
+  // If that column has not been added yet, fall back to saving without it.
+  let { error: updateStageError } = await supabase
     .from("approval_stages")
-    .update({
-      status: newStatus,
-      approved_by: user.id,
-      approved_at: new Date().toISOString(),
-    })
+    .update(action === "reject" ? { ...stageUpdate, rejection_reason: reason } : stageUpdate)
     .eq("id", stageId);
+
+  if (updateStageError && action === "reject" && /rejection_reason/.test(updateStageError.message)) {
+    ({ error: updateStageError } = await supabase
+      .from("approval_stages")
+      .update(stageUpdate)
+      .eq("id", stageId));
+  }
 
   if (updateStageError) {
     return NextResponse.json({ error: updateStageError.message }, { status: 500 });

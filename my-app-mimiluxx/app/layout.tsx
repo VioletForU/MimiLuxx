@@ -1,9 +1,6 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
-import AppNav from "@/components/app_navigation/AppNav";
-import type { UserRole } from "@/lib/types/roles";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,31 +17,13 @@ export const metadata: Metadata = {
   description: "Sync your people, drive your mission.",
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let role: UserRole | null = null;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    role = (profile?.role as UserRole) ?? null;
-  }
-
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {user && role && <AppNav role={role} />}
-        {children}
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
