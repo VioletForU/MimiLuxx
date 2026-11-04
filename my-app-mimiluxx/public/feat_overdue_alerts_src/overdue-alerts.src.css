@@ -1,0 +1,109 @@
+/* MimiLuxx US09: overdue approval alerts.
+   SOURCE for Tailwind v4. In Next.js, paste everything BELOW the first @import line
+   into app/globals.css. overdue-alerts.css is the same thing, pre-compiled for the
+   standalone preview page. */
+@import "tailwindcss";
+
+/* ---------- Brand tokens ---------- */
+@theme {
+  --color-brand: #ED1C24;
+  --color-ink: #06080A;
+
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-rise-in: rise-in 0.5s var(--ease-pop) both;
+  --animate-banner-in: banner-in 0.45s var(--ease-pop) both;
+  --animate-toast-in: toast-in 0.4s var(--ease-pop) both;
+  --animate-ping-soft: ping-soft 1.6s ease-out infinite;
+  --animate-ring-pulse: ring-pulse 1.8s ease-in-out infinite;
+  --animate-flash-row: flash-row 1.8s ease-out both;
+  --animate-stamp-in: stamp-in 0.45s var(--ease-pop) both;
+
+  @keyframes rise-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes banner-in { from { opacity: 0; transform: translateY(-14px) scale(0.98); } to { opacity: 1; transform: none; } }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes ping-soft { 0% { box-shadow: 0 0 0 0 rgb(237 28 36 / 0.55); } 80%, 100% { box-shadow: 0 0 0 9px rgb(237 28 36 / 0); } }
+  @keyframes ring-pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgb(237 28 36 / 0.35); } 50% { opacity: 0.6; box-shadow: 0 0 0 7px rgb(237 28 36 / 0); } }
+  @keyframes flash-row { from { background-color: rgb(237 28 36 / 0.16); } to { background-color: transparent; } }
+  @keyframes stamp-in { from { opacity: 0; transform: scale(1.35) rotate(-3deg); } to { opacity: 1; transform: none; } }
+}
+
+@layer components {
+  /* ---------- Surfaces + form bits ---------- */
+  .panel { @apply rounded-2xl border border-ink/15 bg-white p-5 shadow-[0_2px_0_rgba(6,8,10,0.06)] sm:p-7; }
+  .label { @apply mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70; }
+  .field { @apply h-11 w-full rounded-lg border border-ink/25 bg-white px-3 text-sm outline-none transition focus:border-ink focus:ring-4 focus:ring-brand/20 aria-[invalid=true]:border-brand; }
+
+  /* ---------- Buttons ---------- */
+  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-[13px] font-bold transition duration-200 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-sm { @apply h-9 px-4; }
+  .btn-primary { @apply bg-brand text-white hover:brightness-90; }
+  .btn-ghost { @apply border border-ink/25 bg-white text-ink hover:border-ink hover:bg-ink hover:text-white; }
+  .btn-ghost[aria-pressed="true"] { @apply border-ink bg-ink text-white; }
+  .btn-pulse { @apply animate-ping-soft; }
+
+  .switch { @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-ink/25 transition-colors after:absolute after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition-transform aria-checked:bg-brand aria-checked:after:translate-x-5 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+
+  /* ---------- Banner ---------- */
+  .banner-breach { @apply animate-banner-in flex flex-wrap items-center gap-3 rounded-2xl bg-ink px-5 py-4 text-white; }
+  .banner-dot { @apply size-3 shrink-0 rounded-full bg-brand animate-ping-soft; }
+
+  /* ---------- Demo controls ---------- */
+  .demo-bar { @apply flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-ink/30 px-4 py-3; }
+
+  /* ---------- Badges: <span class="badge" data-status="breach|warn|ok|off"> ---------- */
+  .badge { @apply inline-flex cursor-help items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink; }
+  .badge[data-status="breach"] { @apply bg-brand text-white; }
+  .badge[data-status="breach"]::before { content: ""; @apply size-2 rounded-full bg-white animate-ping-soft; }
+  .badge[data-status="warn"] { @apply border border-ink bg-white text-ink; }
+  .badge[data-status="ok"] { @apply border border-ink/20 bg-white text-ink/70; }
+  .badge[data-status="off"] { @apply border border-ink/15 bg-ink/5 text-ink/50; }
+  .badge-ink { @apply bg-ink text-white; }
+  .badge-red { @apply bg-brand text-white; }
+  .badge-xs { @apply cursor-default px-2 py-0.5; }
+
+  /* ---------- Tooltip (hover + keyboard focus), right-aligned so it never leaves the card ---------- */
+  .tip-wrap { @apply relative inline-flex; }
+  .tip { @apply pointer-events-none invisible absolute top-full right-0 z-20 mt-2 w-64 rounded-lg bg-ink px-3 py-2 text-left text-xs font-bold text-white opacity-0 shadow-xl transition duration-150; }
+  .tip::before { content: ""; @apply absolute bottom-full right-4 border-[6px] border-transparent border-b-ink; }
+  .tip-wrap:is(:hover, :focus-within) .tip { @apply visible opacity-100; }
+
+  /* ---------- Task cards: <li class="task-card" data-state="breach|warn|ok|off"> ---------- */
+  .task-card { @apply relative animate-rise-in rounded-2xl border border-ink/15 bg-white p-5 pl-7 transition duration-200 [animation-delay:calc(var(--i,0)*70ms)] hover:-translate-y-0.5 hover:shadow-lg; }
+  .task-card::before { content: ""; @apply absolute inset-y-3 left-0 w-1.5 rounded-r-full bg-ink/15; }
+  .task-card[data-state="warn"]::before { @apply bg-ink; }
+  .task-card[data-state="breach"] { @apply border-brand/60; }
+  .task-card[data-state="breach"]::before { @apply bg-brand; }
+  /* pulsing red ring lives on a pseudo-element so it never fights the entrance animation */
+  .task-card[data-state="breach"]::after { content: ""; @apply pointer-events-none absolute -inset-px rounded-2xl border-2 border-brand animate-ring-pulse; }
+  .task-card[data-state="off"] { @apply opacity-70; }
+
+  .meter { @apply h-2 w-full overflow-hidden rounded-full bg-ink/10; }
+  .meter > span { @apply block h-full w-[var(--pct,0%)] rounded-full bg-ink transition-[width] duration-500; }
+  .task-card[data-state="breach"] .meter > span { @apply bg-brand; }
+
+  .activity > summary { @apply cursor-pointer list-none text-xs font-bold text-ink/60 transition hover:text-ink; }
+  .activity > summary::-webkit-details-marker { display: none; }
+  .activity > summary::before { content: "\25B8  "; }
+  .activity[open] > summary::before { content: "\25BE  "; }
+  .activity ol { @apply mt-2 grid gap-2 border-l-2 border-ink/15 pl-3; }
+  .activity li { @apply text-xs text-ink/70; }
+  .activity time { @apply block font-bold text-ink/50; }
+
+  /* ---------- Alert log ---------- */
+  .log-row { @apply flex items-start gap-3 border-t border-ink/10 py-3 first:border-t-0; }
+  .log-row[data-new="true"] { @apply animate-flash-row; }
+  .log-dot { @apply mt-1.5 size-2.5 shrink-0 rounded-full bg-ink; }
+  .log-row[data-kind="signatory"] .log-dot { @apply bg-brand; }
+
+  /* ---------- Toasts: data-kind="breach|info" ---------- */
+  .toast { @apply animate-toast-in flex items-start gap-3 rounded-xl border-l-8 px-4 py-3 text-sm shadow-xl transition duration-200; }
+  .toast[data-kind="breach"] { @apply border-brand bg-ink text-white; }
+  .toast[data-kind="info"] { @apply border-ink bg-white text-ink ring-1 ring-ink/15; }
+  .toast[data-leaving="true"] { @apply translate-x-6 opacity-0; }
+  .toast-close { @apply -mr-1 grid size-7 shrink-0 place-items-center rounded-full text-lg leading-none opacity-70 transition hover:bg-white/15 hover:opacity-100 focus-visible:outline-[3px] focus-visible:outline-offset-1 focus-visible:outline-brand; }
+  .toast[data-kind="info"] .toast-close { @apply hover:bg-ink/10; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}

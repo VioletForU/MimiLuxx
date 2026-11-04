@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Overdue Approvals · MimiLuxx</title>
   <link rel="stylesheet" href="overdue-alerts.css">
+  <script src="overdue-alerts.js" defer></script>
 </head>
 <body class="min-h-screen bg-white font-sans text-ink antialiased">
 
-  <!-- Top bar -->
   <header class="border-b border-ink/15">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
       <p class="text-lg font-extrabold">Mimi<span class="text-brand">Luxx</span></p>
       <nav aria-label="Main" class="hidden gap-6 text-sm font-bold sm:flex">
-        <a href="#">Dashboard</a><a href="#">All Tasks</a><a href="#" class="text-brand">Approvals</a><a href="#">Settings</a>
+        <a href="#">Dashboard</a><a href="#">All Tasks</a><a href="#" class="text-brand" aria-current="page">Approvals</a><a href="#">Settings</a>
       </nav>
     </div>
   </header>
@@ -21,185 +21,167 @@
   <main class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6">
     <div>
       <h1 class="text-2xl font-extrabold sm:text-3xl">Overdue approvals</h1>
-      <p class="mt-1 text-sm text-ink/60">Sign-offs that have waited longer than their time limit.</p>
+      <p class="mt-1 text-sm text-ink/60">Sign-offs that have waited longer than their time limit. A background check looks for them and sends the alerts.</p>
     </div>
 
-    <!-- 1. Breach banner -->
-    <section class="banner-breach" role="alert" aria-label="Breach summary">
+    <!-- Breach banner (shown by the script when something is overdue) -->
+    <section id="banner" class="banner-breach" role="alert" aria-label="Breach summary" hidden>
       <span class="banner-dot" aria-hidden="true"></span>
-      <p class="min-w-0 flex-1 text-sm font-bold sm:text-base">2 sign-offs are past the time limit.</p>
+      <p id="banner-text" class="min-w-0 flex-1 text-sm font-bold sm:text-base"></p>
       <a href="#cards" class="btn btn-primary">Review now</a>
+    </section>
+
+    <!-- DEMO ONLY: real time is too slow to see a breach happen, so jump the clock forward. -->
+    <section class="demo-bar" aria-label="Demo controls">
+      <p class="mr-auto text-xs font-bold uppercase tracking-wide text-ink/60">Demo clock <span id="clock-label" class="ml-1 normal-case tracking-normal text-ink"></span></p>
+      <button type="button" class="btn btn-ghost btn-sm" data-advance="1">+1 hour</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-advance="6">+6 hours</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-advance="24">+1 day</button>
+      <button type="button" id="btn-reset" class="btn btn-ghost btn-sm">Reset demo</button>
     </section>
 
     <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
 
-      <!-- 2. Time-limit settings panel -->
-      <section class="panel min-w-0 lg:self-start" aria-labelledby="cfg-title">
-        <h2 id="cfg-title" class="text-lg font-extrabold">Time limits</h2>
-        <p class="mt-1 text-sm text-ink/60">Per signatory role. Only an Exec Approver can change these.</p>
-        <form class="mt-5 grid gap-5">
-          <fieldset class="grid gap-3 rounded-xl border border-ink/15 p-4">
-            <legend class="px-1 text-sm font-extrabold">Committee Lead</legend>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-bold" id="en-cl">Check this role</span>
-              <button type="button" class="switch" role="switch" aria-checked="true" aria-labelledby="en-cl"></button>
-            </div>
-            <div>
-              <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70" for="lim-cl">Alert after</label>
-              <div class="flex gap-2">
-                <input id="lim-cl" class="field" type="number" min="1" value="2">
-                <select class="field w-28 shrink-0" aria-label="Unit for Committee Lead limit"><option selected>days</option><option>hours</option></select>
+      <!-- ================= TIME LIMITS + JOB ================= -->
+      <div class="grid min-w-0 gap-6 lg:self-start">
+        <section class="panel" aria-labelledby="cfg-title">
+          <h2 id="cfg-title" class="text-lg font-extrabold">Time limits</h2>
+          <p class="mt-1 text-sm text-ink/60">Per signatory role. Saving checks everything right away.</p>
+
+          <form id="cfg-form" class="mt-5 grid gap-5" novalidate>
+            <fieldset class="grid gap-3 rounded-xl border border-ink/15 p-4" data-role="Committee Lead">
+              <legend class="px-1 text-sm font-extrabold">Committee Lead</legend>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm font-bold" id="en-cl">Check this role</span>
+                <button type="button" class="switch" role="switch" aria-checked="true" aria-labelledby="en-cl" data-field="enabled"></button>
               </div>
-            </div>
-            <div>
-              <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70" for="rep-cl">Remind again every (hours, 0 = never)</label>
-              <input id="rep-cl" class="field" type="number" min="0" value="24">
-            </div>
-          </fieldset>
-          <fieldset class="grid gap-3 rounded-xl border border-ink/15 p-4">
-            <legend class="px-1 text-sm font-extrabold">Exec Approver</legend>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-bold" id="en-ea">Check this role</span>
-              <button type="button" class="switch" role="switch" aria-checked="true" aria-labelledby="en-ea"></button>
-            </div>
-            <div>
-              <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70" for="lim-ea">Alert after</label>
-              <div class="flex gap-2">
-                <input id="lim-ea" class="field" type="number" min="1" value="3">
-                <select class="field w-28 shrink-0" aria-label="Unit for Exec Approver limit"><option selected>days</option><option>hours</option></select>
+              <div>
+                <label class="label" for="lim-cl">Alert after</label>
+                <div class="flex gap-2">
+                  <input id="lim-cl" class="field" type="number" min="1" inputmode="numeric" data-field="limit">
+                  <select class="field w-28 shrink-0" aria-label="Unit for Committee Lead limit" data-field="unit">
+                    <option value="1">hours</option><option value="24">days</option>
+                  </select>
+                </div>
               </div>
+              <div>
+                <label class="label" for="rep-cl">Remind again every (hours, 0 = never)</label>
+                <input id="rep-cl" class="field" type="number" min="0" inputmode="numeric" data-field="repeat">
+              </div>
+            </fieldset>
+
+            <fieldset class="grid gap-3 rounded-xl border border-ink/15 p-4" data-role="Exec Approver">
+              <legend class="px-1 text-sm font-extrabold">Exec Approver</legend>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm font-bold" id="en-ea">Check this role</span>
+                <button type="button" class="switch" role="switch" aria-checked="true" aria-labelledby="en-ea" data-field="enabled"></button>
+              </div>
+              <div>
+                <label class="label" for="lim-ea">Alert after</label>
+                <div class="flex gap-2">
+                  <input id="lim-ea" class="field" type="number" min="1" inputmode="numeric" data-field="limit">
+                  <select class="field w-28 shrink-0" aria-label="Unit for Exec Approver limit" data-field="unit">
+                    <option value="1">hours</option><option value="24">days</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="label" for="rep-ea">Remind again every (hours, 0 = never)</label>
+                <input id="rep-ea" class="field" type="number" min="0" inputmode="numeric" data-field="repeat">
+              </div>
+            </fieldset>
+
+            <p id="cfg-error" class="text-sm font-bold text-brand" role="alert" hidden></p>
+            <div class="flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-primary">Save limits</button>
+              <button type="button" id="btn-run" class="btn btn-ghost">Run check now</button>
             </div>
-            <div>
-              <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink/70" for="rep-ea">Remind again every (hours, 0 = never)</label>
-              <input id="rep-ea" class="field" type="number" min="0" value="0">
-            </div>
-          </fieldset>
-          <div class="flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">Save limits</button>
-            <button type="button" class="btn btn-ghost">Run check now</button>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="job-title">
+          <h2 id="job-title" class="text-lg font-extrabold">Scheduled check</h2>
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <span class="text-sm font-bold" id="auto-label">Check automatically</span>
+            <button type="button" id="auto-switch" class="switch" role="switch" aria-checked="true" aria-labelledby="auto-label"></button>
           </div>
-        </form>
-      </section>
+          <div class="mt-4">
+            <label class="label" for="job-every">Every</label>
+            <select id="job-every" class="field">
+              <option value="5">5 seconds (demo)</option>
+              <option value="10" selected>10 seconds (demo)</option>
+              <option value="30">30 seconds (demo)</option>
+            </select>
+          </div>
+          <p id="job-status" class="mt-4 text-sm text-ink/70" role="status"></p>
+        </section>
+      </div>
 
       <div class="grid min-w-0 gap-6">
 
-        <!-- 3. Task cards with breach indicators -->
-        <section aria-labelledby="cards-title" id="cards">
+        <!-- ================= TASK CARDS ================= -->
+        <section id="cards" aria-labelledby="cards-title">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 id="cards-title" class="text-lg font-extrabold">Waiting for sign-off</h2>
-            <p class="text-sm text-ink/60">4 pending · 2 breached</p>
+            <p id="cards-count" class="text-sm text-ink/60"></p>
           </div>
-          <ul class="grid gap-4 md:grid-cols-2">
-          <li class="task-card [animation-delay:0ms]" data-state="breach">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="min-w-0 text-base font-extrabold">Org Shirt Design Approval</h3>
-              <span class="badge badge-breach">Breached +8 h</span>
-            </div>
-            <p class="mt-1 text-sm text-ink/60">Requested by Carla Tan</p>
-            <p class="mt-3 text-sm"><strong>Exec Approver</strong> has been asked for 3 days 8 h of 3 days</p>
-            <div class="meter mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Time used"><span class="w-[100%]"></span></div>
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <span class="text-xs text-ink/50">Limit: 3 days</span>
-              <a href="#" class="btn btn-ghost !h-9 !px-4">Open proposal</a>
-            </div>
-          </li>
-          <li class="task-card [animation-delay:70ms]" data-state="breach">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="min-w-0 text-base font-extrabold">Intramurals Budget 2026</h3>
-              <span class="badge badge-breach">Breached +13 h</span>
-            </div>
-            <p class="mt-1 text-sm text-ink/60">Requested by Ana Reyes</p>
-            <p class="mt-3 text-sm"><strong>Committee Lead</strong> has been asked for 2 days 13 h of 2 days</p>
-            <div class="meter mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Time used"><span class="w-[100%]"></span></div>
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <span class="text-xs text-ink/50">Limit: 2 days</span>
-              <a href="#" class="btn btn-ghost !h-9 !px-4">Open proposal</a>
-            </div>
-          </li>
-          <li class="task-card [animation-delay:140ms]" data-state="warn">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="min-w-0 text-base font-extrabold">Tech Talk Venue Booking</h3>
-              <span class="badge badge-warn">Almost due</span>
-            </div>
-            <p class="mt-1 text-sm text-ink/60">Requested by Miguel Cruz</p>
-            <p class="mt-3 text-sm"><strong>Committee Lead</strong> has been asked for 1 day 14 h of 2 days</p>
-            <div class="meter mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82" aria-label="Time used"><span class="w-[82%]"></span></div>
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <span class="text-xs text-ink/50">Limit: 2 days</span>
-              <a href="#" class="btn btn-ghost !h-9 !px-4">Open proposal</a>
-            </div>
-          </li>
-          <li class="task-card [animation-delay:210ms]" data-state="ok">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="min-w-0 text-base font-extrabold">Recruitment Week Poster</h3>
-              <span class="badge badge-ok">On time</span>
-            </div>
-            <p class="mt-1 text-sm text-ink/60">Requested by Jon Dela Cruz</p>
-            <p class="mt-3 text-sm"><strong>Exec Approver</strong> has been asked for 9 h of 3 days</p>
-            <div class="meter mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12" aria-label="Time used"><span class="w-[12%]"></span></div>
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <span class="text-xs text-ink/50">Limit: 3 days</span>
-              <a href="#" class="btn btn-ghost !h-9 !px-4">Open proposal</a>
-            </div>
-          </li>
-          </ul>
+          <ul id="card-list" class="grid gap-4 md:grid-cols-2"></ul>
+          <p id="cards-empty" class="rounded-xl border border-dashed border-ink/25 p-6 text-center text-sm text-ink/60" hidden>Nothing is waiting for sign-off.</p>
         </section>
 
-        <!-- 4. Breach alert log -->
+        <!-- ================= ALERT LOG ================= -->
         <section class="panel" aria-labelledby="log-title">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 id="log-title" class="text-lg font-extrabold">Breach alert log</h2>
             <div class="flex gap-2" role="group" aria-label="Filter log">
-              <button type="button" class="btn btn-ghost !h-9 !px-4 !bg-ink !text-white">All</button>
-              <button type="button" class="btn btn-ghost !h-9 !px-4">Signatories</button>
-              <button type="button" class="btn btn-ghost !h-9 !px-4">Requesters</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-filter="signatory" aria-pressed="false">Signatories</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-filter="requester" aria-pressed="false">Requesters</button>
             </div>
           </div>
-          <ol class="mt-4">
-            <li class="log-row" data-kind="signatory">
-              <span class="log-dot" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm"><span class="badge badge-breach !px-2 !py-0.5">Signatory</span> <strong class="ml-1">Exec Approvers</strong></p>
-                <p class="mt-1 text-sm text-ink/70">Reminded to sign off “Org Shirt Design Approval” (waiting 3 days 8 h, limit 3 days).</p>
-              </div>
-              <time class="shrink-0 text-xs text-ink/50">Today, 2:30 PM</time>
-            </li>
-            <li class="log-row" data-kind="requester">
-              <span class="log-dot" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm"><span class="badge badge-ink !px-2 !py-0.5">Requester</span> <strong class="ml-1">Carla Tan</strong></p>
-                <p class="mt-1 text-sm text-ink/70">Told that “Org Shirt Design Approval” has waited 3 days 8 h for an Exec Approver.</p>
-              </div>
-              <time class="shrink-0 text-xs text-ink/50">Today, 2:30 PM</time>
-            </li>
-            <li class="log-row" data-kind="signatory">
-              <span class="log-dot" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm"><span class="badge badge-breach !px-2 !py-0.5">Signatory</span> <strong class="ml-1">Committee Leads</strong></p>
-                <p class="mt-1 text-sm text-ink/70">Reminded to sign off “Intramurals Budget 2026” (waiting 2 days 13 h, limit 2 days).</p>
-              </div>
-              <time class="shrink-0 text-xs text-ink/50">Today, 2:30 PM</time>
-            </li>
-            <li class="log-row" data-kind="requester">
-              <span class="log-dot" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm"><span class="badge badge-ink !px-2 !py-0.5">Requester</span> <strong class="ml-1">Ana Reyes</strong></p>
-                <p class="mt-1 text-sm text-ink/70">Told that “Intramurals Budget 2026” has waited 2 days 13 h for a Committee Lead.</p>
-              </div>
-              <time class="shrink-0 text-xs text-ink/50">Today, 2:30 PM</time>
-            </li>
-            <li class="log-row" data-kind="requester">
-              <span class="log-dot" aria-hidden="true"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm"><span class="badge badge-ink !px-2 !py-0.5">Requester</span> <strong class="ml-1">Miguel Cruz</strong></p>
-                <p class="mt-1 text-sm text-ink/70">Told that “Hackathon Kit Request” has waited 3 days (limit 3 days).</p>
-              </div>
-              <time class="shrink-0 text-xs text-ink/50">Yesterday, 9:38 AM</time>
-            </li>
-          </ol>
+          <ol id="log" class="mt-4"></ol>
+          <p id="log-empty" class="mt-4 rounded-xl border border-dashed border-ink/25 p-6 text-center text-sm text-ink/60" hidden>No alerts yet.</p>
         </section>
       </div>
     </div>
   </main>
+
+  <!-- Toasts appear here -->
+  <div id="toast-stack" class="fixed top-4 right-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-3" aria-live="polite"></div>
+
+  <!-- ================= TEMPLATES (the script copies these) ================= -->
+  <template id="card-template">
+    <li class="task-card" data-state="ok">
+      <div class="flex items-start justify-between gap-3">
+        <h3 class="min-w-0 text-base font-extrabold" data-ref="title"></h3>
+        <span class="tip-wrap">
+          <button type="button" class="badge" data-ref="badge" data-status="ok"></button>
+          <span role="tooltip" class="tip" data-ref="tip"></span>
+        </span>
+      </div>
+      <p class="mt-1 text-sm text-ink/60">Requested by <span data-ref="requester"></span></p>
+      <p class="mt-3 text-sm"><strong data-ref="role"></strong> <span data-ref="elapsed"></span></p>
+      <div class="meter mt-2" role="progressbar" aria-label="Time used" aria-valuemin="0" aria-valuemax="100" data-ref="meter"><span></span></div>
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <span class="text-xs text-ink/50" data-ref="limit"></span>
+        <a href="#" class="btn btn-sm btn-ghost" data-ref="action"></a>
+      </div>
+      <details class="activity mt-4">
+        <summary>Activity (<span data-ref="count">0</span>)</summary>
+        <ol data-ref="activity"></ol>
+      </details>
+    </li>
+  </template>
+
+  <template id="log-template">
+    <li class="log-row" data-kind="signatory">
+      <span class="log-dot" aria-hidden="true"></span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm"><span class="badge badge-xs" data-ref="kind"></span> <strong class="ml-1" data-ref="who"></strong></p>
+        <p class="mt-1 text-sm text-ink/70" data-ref="text"></p>
+      </div>
+      <time class="shrink-0 text-xs text-ink/50" data-ref="time"></time>
+    </li>
+  </template>
 </body>
 </html>
