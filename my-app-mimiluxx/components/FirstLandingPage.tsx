@@ -55,7 +55,7 @@ const FEATURES = [
   },
   {
     title: "Roles that match your organization",
-    body: "Members, Committee Leads and Exec Approvers each get what they need. Exec Approvers assign roles from a simple admin page.",
+    body: "Presidents, Advisers, Committee Heads and members each get what they need. Presidents and Advisers manage roles from the admin panel.",
     icon: (
       <>
         <circle cx="9" cy="8" r="3" />
@@ -70,7 +70,7 @@ const FEATURES = [
 const STEPS = [
   {
     title: "Create your account",
-    body: "Sign up with your institutional email and confirm it. An Exec Approver can set your role.",
+    body: "Sign up with your institutional email and confirm it. A President or Adviser can set your role.",
   },
   {
     title: "Add your work",
@@ -89,14 +89,14 @@ const ROLES = [
     body: "Manage your own tasks and submit proposals for approval.",
   },
   {
-    name: "Committee Lead",
+    name: "Committee Head",
     tag: "Stage 1 sign-off",
     body: "Reviews proposals first and decides whether they move forward.",
   },
   {
-    name: "Exec Approver",
+    name: "President",
     tag: "Stage 2 sign-off",
-    body: "Gives the final sign-off and assigns roles to members.",
+    body: "Gives the final sign-off on every proposal.",
   },
 ];
 
@@ -143,11 +143,11 @@ function ProductPreview() {
           <p className="mt-1 text-sm font-semibold text-neutral-900">Event budget request</p>
           <ol className="mt-3 space-y-2">
             <li className="flex items-center justify-between rounded-xl border border-green-300 bg-green-100 px-3 py-2 text-xs text-green-700">
-              <span className="font-semibold">Stage 1: Committee Lead</span>
+              <span className="font-semibold">Stage 1: Committee Head</span>
               <span className="font-medium uppercase">Approved</span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-600 ring-2 ring-neutral-900">
-              <span className="font-semibold">Stage 2: Exec Approver</span>
+              <span className="font-semibold">Stage 2: President</span>
               <span>Pending for 2d 4h</span>
             </li>
           </ol>
@@ -291,7 +291,7 @@ export default async function LandingPage() {
           </h2>
           <p className="mt-3 max-w-2xl text-neutral-300">
             Every proposal passes through the same stages, in order, and each stage belongs to
-            one role.
+            one role. Presidents and Advisers also manage roles and organizations.
           </p>
 
           <ul className="mt-12 grid gap-5 md:grid-cols-3">

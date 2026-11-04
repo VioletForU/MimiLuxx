@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { APPROVAL_CHAIN } from "@/lib/types/roles";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -36,11 +37,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // Auto-generate the two-stage approval chain for every new proposal.
-  const { error: stagesError } = await supabase.from("approval_stages").insert([
-    { proposal_id: proposal.id, stage_order: 1, approver_role: "Committee Lead" },
-    { proposal_id: proposal.id, stage_order: 2, approver_role: "Exec Approver" },
-  ]);
+  // Auto-generate the approval chain (see APPROVAL_CHAIN in lib/types/roles.ts).
+  const { error: stagesError } = await supabase.from("approval_stages").insert(
+    APPROVAL_CHAIN.map((stage) => ({ proposal_id: proposal.id, ...stage }))
+  );
 
   if (stagesError) {
     return NextResponse.json({ error: stagesError.message }, { status: 500 });
