@@ -4,7 +4,7 @@ import { getTaskPriority } from "@/lib/priority";
 import { routeStages } from "@/lib/stageRouting";
 import type { Proposal, ApprovalStage } from "@/lib/types/proposal";
 import ProposalsPanel, { type ProposalRow } from "./ProposalsPanel";
-import SidebarLogout from "./SidebarLogout";
+import AppSidebar from "@/components/app_navigation/AppSidebar";
 import { sortAnnouncements, statusOf, visibleTo, type Announcement } from "@/lib/announcements";
 
 type Props = { searchParams: Promise<{ tab?: string }> };
@@ -31,9 +31,6 @@ function Icon({ path, className = "h-6 w-6 shrink-0 text-[#E5252A]" }: { path: s
     </svg>
   );
 }
-
-const navItemClass =
-  "flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-[15px] font-extrabold text-[#1F1F1F] transition hover:bg-[#F5F5F7]";
 
 const PRIORITY_BADGE: Record<string, string> = {
   Overdue: "bg-red-100 text-red-700",
@@ -265,7 +262,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name, email")
+    .select("role, full_name, email, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -279,15 +276,6 @@ export default async function DashboardPage({ searchParams }: Props) {
   const banners = sortAnnouncements((flagged ?? []) as Announcement[])
     .filter((a) => statusOf(a, nowMs) === "active" && visibleTo(a, profile?.role ?? "Member"))
     .slice(0, 2);
-
-  const displayName: string = profile?.full_name || profile?.email || user.email || "";
-  const initials =
-    displayName
-      .split(/[\s@.]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s: string) => s[0]?.toUpperCase())
-      .join("") || "ML";
 
   return (
     <div className="min-h-screen bg-[#E8EAEF] py-6">
@@ -347,70 +335,21 @@ export default async function DashboardPage({ searchParams }: Props) {
               className="rounded-full bg-[#181818] px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#333333] active:scale-95"
             >
               + New Task
-            </Link>
+                      </Link>
+                      {activeTab === "proposals" && (
+                          <Link
+                              href="/proposals/new"
+                              className="rounded-full bg-[#181818] px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#333333] active:scale-95"
+                          >
+                              + New Proposal
+                          </Link>
+                      )}
           </div>
         </div>
 
         {/* MAIN GRID: floating sidebar + content */}
         <div className="flex w-full flex-col items-start gap-8 lg:flex-row lg:gap-12">
-          <aside className="flex w-full shrink-0 flex-col items-center rounded-[44px] border border-[#EDEDED] bg-white px-4 py-9 shadow-[0_15px_45px_rgba(0,0,0,0.08)] lg:w-[215px]">
-            <div className="mb-10 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#8F9499] shadow-inner">
-              <span className="text-xl font-bold text-white">{initials}</span>
-            </div>
-
-            <nav className="flex w-full flex-col gap-3">
-              {/* Home (active) */}
-              <Link
-                href="/dashboard"
-                className="flex w-full items-center gap-4 rounded-2xl bg-[#E5252A]/[0.08] px-4 py-3 text-[15px] font-extrabold text-[#111111]"
-              >
-                <Icon path={ICONS.home} />
-                <span>Home</span>
-              </Link>
-
-              <Link href="/orgs" className={navItemClass}>
-                <Icon path={ICONS.org} />
-                <span>Org Page</span>
-              </Link>
-
-              <Link href="/tasks" className={navItemClass}>
-                <Icon path={ICONS.file} />
-                <span>Task Page</span>
-              </Link>
-
-              <Link href="/approvals/overdue" className={navItemClass}>
-                <Icon path={ICONS.check} />
-                <span>Approvals</span>
-              </Link>
-
-              <Link href="/announcements" className={navItemClass}>
-                <Icon path={ICONS.bell} />
-                <span>Announcements</span>
-              </Link>
-
-              <Link href="/settings" className={navItemClass}>
-                <Icon path={ICONS.settings} />
-                <span>Settings</span>
-              </Link>
-
-              <Link href="/settings" className={navItemClass}>
-                <Icon path={ICONS.account} />
-                <span>Account</span>
-              </Link>
-
-              {profile?.role === "President" && (
-                <Link href="/admin/users" className={navItemClass}>
-                  <Icon path={ICONS.account} />
-                  <span>Admin</span>
-                </Link>
-              )}
-
-              <SidebarLogout>
-                <Icon path={ICONS.logout} />
-                <span>Logout</span>
-              </SidebarLogout>
-            </nav>
-          </aside>
+          <AppSidebar active="home" />
 
           <main className="w-full min-w-0 flex-1 lg:pr-4">
             {banners.length > 0 && (

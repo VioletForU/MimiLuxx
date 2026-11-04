@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Factor, UserIdentity } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -399,9 +400,20 @@ export default function SettingsClient({ profile }: { profile: SettingsProfile }
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-extrabold sm:text-3xl">Settings &amp; Account</h1>
-        <p className="mt-1 text-sm text-ink/60">Manage your profile, security and preferences.</p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold sm:text-3xl">Settings &amp; Account</h1>
+          <p className="mt-1 text-sm text-ink/60">Manage your profile, security and preferences.</p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="inline-flex h-10 items-center gap-2 rounded-full border border-ink/25 bg-white px-5 text-[13px] font-bold text-ink no-underline transition hover:border-ink focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink"
+        >
+          <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back to dashboard
+        </Link>
       </header>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">
