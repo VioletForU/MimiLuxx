@@ -37,9 +37,10 @@
     --default-mono-font-family: var(--font-mono);
     --color-brand: #ED1C24;
     --color-ink: #06080A;
-    --animate-rise-in: rise-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    --animate-drop-in: drop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    --animate-stamp-in: stamp-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --animate-rise-in: rise-in 0.5s var(--ease-pop) both;
+    --animate-drop-in: drop-in 0.3s var(--ease-pop) both;
+    --animate-stamp-in: stamp-in 0.45s var(--ease-pop) both;
     --animate-ping-soft: ping-soft 1.6s ease-out infinite;
     --animate-shake: shake 0.35s ease both;
   }
@@ -231,6 +232,9 @@
   .mb-3 {
     margin-bottom: calc(var(--spacing) * 3);
   }
+  .block {
+    display: block;
+  }
   .flex {
     display: flex;
   }
@@ -247,9 +251,6 @@
   .size-5 {
     width: calc(var(--spacing) * 5);
     height: calc(var(--spacing) * 5);
-  }
-  .\!h-9 {
-    height: calc(var(--spacing) * 9) !important;
   }
   .min-h-screen {
     min-height: 100vh;
@@ -317,9 +318,6 @@
   }
   .bg-white {
     background-color: var(--color-white);
-  }
-  .\!px-4 {
-    padding-inline: calc(var(--spacing) * 4) !important;
   }
   .px-4 {
     padding-inline: calc(var(--spacing) * 4);
@@ -444,6 +442,23 @@
       padding: calc(var(--spacing) * 7);
     }
   }
+  .card {
+    transition-property: border-color,box-shadow;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+    --tw-duration: 300ms;
+    transition-duration: 300ms;
+  }
+  .card[data-state="approved"] {
+    border-color: var(--color-ink);
+    --tw-shadow: 0 0 0 3px var(--tw-shadow-color, rgb(6 8 10/0.12));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .card[data-state="rejected"] {
+    border-color: var(--color-brand);
+    --tw-shadow: 0 0 0 3px var(--tw-shadow-color, rgb(237 28 36/0.18));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
   .label {
     margin-bottom: calc(var(--spacing) * 1.5);
     display: block;
@@ -556,14 +571,14 @@
     font-weight: var(--font-weight-bold);
     white-space: nowrap;
   }
-  .badge-pending {
+  .badge[data-status="pending"] {
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-ink);
     background-color: var(--color-white);
     color: var(--color-ink);
   }
-  .badge-pending::before {
+  .badge[data-status="pending"]::before {
     content: "";
     width: calc(var(--spacing) * 2);
     height: calc(var(--spacing) * 2);
@@ -571,20 +586,20 @@
     border-radius: calc(infinity * 1px);
     background-color: var(--color-brand);
   }
-  .badge-approved {
+  .badge[data-status="approved"] {
     animation: var(--animate-stamp-in);
     background-color: var(--color-ink);
     color: var(--color-white);
   }
-  .badge-approved::before {
+  .badge[data-status="approved"]::before {
     content: "\2713";
   }
-  .badge-rejected {
+  .badge[data-status="rejected"] {
     animation: var(--animate-stamp-in);
     background-color: var(--color-brand);
     color: var(--color-white);
   }
-  .badge-rejected::before {
+  .badge[data-status="rejected"]::before {
     content: "\2715";
   }
   .btn {
@@ -620,6 +635,10 @@
       --tw-scale-z: 95%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
     }
+  }
+  .btn-sm {
+    height: calc(var(--spacing) * 9);
+    padding-inline: calc(var(--spacing) * 4);
   }
   .btn-approve {
     background-color: var(--color-ink);
@@ -769,7 +788,7 @@
     border-color: transparent;
     border-top-color: var(--color-ink);
   }
-  .tip-wrap:hover .tip, .tip-wrap:focus-within .tip {
+  .tip-wrap:has(> .btn[aria-disabled="true"]):is(:hover, :focus-within) .tip {
     visibility: visible;
     opacity: 100%;
   }
@@ -841,6 +860,8 @@
       background-color: color-mix(in oklab, var(--color-ink) 5%, transparent);
     }
     padding: calc(var(--spacing) * 4);
+    --tw-outline-style: none;
+    outline-style: none;
   }
   .decision[data-state="approved"] {
     border-color: var(--color-ink);
@@ -862,9 +883,6 @@
     font-size: var(--text-sm);
     line-height: var(--tw-leading, var(--text-sm--line-height));
     font-style: italic;
-  }
-  .trail {
-    display: grid;
   }
   .trail > li {
     position: relative;
@@ -890,7 +908,7 @@
       background-color: color-mix(in oklab, var(--color-ink) 15%, transparent);
     }
   }
-  .trail > li[data-state="done"]:not(:last-child)::before, .trail > li[data-state="approved"]:not(:last-child)::before {
+  .trail > li:is([data-state="done"], [data-state="approved"]):not(:last-child)::before {
     background-color: var(--color-ink);
   }
   .node {
@@ -918,26 +936,25 @@
   .node::after {
     content: attr(data-n);
   }
-  [data-state="done"] .node, [data-state="approved"] .node {
+  :is([data-state="done"], [data-state="approved"]) > .node {
     border-color: var(--color-ink);
     background-color: var(--color-ink);
     color: var(--color-white);
   }
-  [data-state="done"] .node::after, [data-state="approved"] .node::after {
+  :is([data-state="done"], [data-state="approved"]) > .node::after {
     content: "\2713";
   }
-  [data-state="active"] .node {
+  [data-state="active"] > .node {
     animation: var(--animate-ping-soft);
     border-color: var(--color-brand);
-    background-color: var(--color-white);
     color: var(--color-brand);
   }
-  [data-state="rejected"] .node {
+  [data-state="rejected"] > .node {
     border-color: var(--color-brand);
     background-color: var(--color-brand);
     color: var(--color-white);
   }
-  [data-state="rejected"] .node::after {
+  [data-state="rejected"] > .node::after {
     content: "\2715";
   }
   [data-state="rejected"] .trail-title {
@@ -1037,14 +1054,14 @@
   inherits: false;
   initial-value: 0 0 #0000;
 }
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
 @property --tw-outline-style {
   syntax: "*";
   inherits: false;
   initial-value: solid;
-}
-@property --tw-duration {
-  syntax: "*";
-  inherits: false;
 }
 @property --tw-scale-x {
   syntax: "*";
@@ -1201,8 +1218,8 @@
       --tw-ring-offset-width: 0px;
       --tw-ring-offset-color: #fff;
       --tw-ring-offset-shadow: 0 0 #0000;
-      --tw-outline-style: solid;
       --tw-duration: initial;
+      --tw-outline-style: solid;
       --tw-scale-x: 1;
       --tw-scale-y: 1;
       --tw-scale-z: 1;

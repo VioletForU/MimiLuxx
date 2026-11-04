@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Approve / Reject · MimiLuxx</title>
   <link rel="stylesheet" href="approve-reject-workflow.css">
+  <script src="approve-reject-workflow.js" defer></script>
 </head>
 <body class="min-h-screen bg-white font-sans text-ink antialiased">
 
@@ -12,18 +13,22 @@
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
       <p class="text-lg font-extrabold">Mimi<span class="text-brand">Luxx</span></p>
       <nav aria-label="Main" class="hidden gap-6 text-sm font-bold sm:flex">
-        <a href="#">Dashboard</a><a href="#">All Tasks</a><a href="#" class="text-brand">Proposals</a><a href="#">Settings</a>
+        <a href="#">Dashboard</a><a href="#">All Tasks</a><a href="#" class="text-brand" aria-current="page">Proposals</a><a href="#">Settings</a>
       </nav>
     </div>
   </header>
 
   <main class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6">
+
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p class="text-sm font-bold text-ink/60">Proposals &rsaquo; Org Shirt Design Approval</p>
+        <nav aria-label="Breadcrumb" class="text-sm font-bold text-ink/60">
+          <a href="#">Proposals</a> <span aria-hidden="true">&rsaquo;</span> <span aria-current="page">Org Shirt Design Approval</span>
+        </nav>
         <h1 class="mt-1 text-2xl font-extrabold sm:text-3xl">Sign-off request</h1>
       </div>
-      <!-- Demo control: simulate who is looking at the page -->
+
+      <!-- DEMO ONLY: pretend to be someone else. Delete this block in the real app. -->
       <div>
         <p class="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink/60" id="seg-label">Preview as</p>
         <div class="seg" role="group" aria-labelledby="seg-label">
@@ -36,54 +41,57 @@
     <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
 
       <!-- ================= REQUEST CARD ================= -->
-      <section class="panel min-w-0 animate-rise-in" aria-labelledby="req-title">
-        <div class="flex flex-wrap items-start justify-between gap-3">
+      <article id="request-card" class="panel card min-w-0 animate-rise-in" data-state="pending" aria-labelledby="req-title">
+        <header class="flex flex-wrap items-start justify-between gap-3">
           <div class="min-w-0">
             <h2 id="req-title" class="text-xl font-extrabold">Org Shirt Design Approval</h2>
             <p class="mt-1 text-sm text-ink/60">Requested by <strong class="text-ink">Carla Tan</strong> · Member</p>
             <p class="text-sm text-ink/60">Submitted <time datetime="2026-11-01T09:12">Nov 1, 2026, 9:12 AM</time></p>
           </div>
-          <span id="status-badge" class="badge badge-pending">Pending</span>
-        </div>
+          <span id="status-badge" class="badge" data-status="pending">Pending</span>
+        </header>
 
         <p class="mt-5 text-sm text-ink/80">Final shirt design for the 2026 org shirt batch. Needs Exec Approver sign-off before we send it to the printer. Estimated cost is within the approved budget.</p>
-        <p class="mt-4"><span class="doc-chip">
-          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-          shirt-design-v3.pdf</span></p>
+        <p class="mt-4">
+          <span class="doc-chip">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            shirt-design-v3.pdf
+          </span>
+        </p>
 
         <hr class="my-6 border-ink/10">
 
         <!-- Who is looking (RBAC preview) -->
-        <div id="guard-banner" class="guard-banner" data-mode="signatory">
+        <div id="guard-banner" class="guard-banner" data-mode="signatory" role="status">
           <svg class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <p id="guard-text"></p>
         </div>
 
-        <!-- Action area (hidden once a decision is made) -->
-        <div id="action-area" class="mt-5">
-          <p class="mb-3 text-sm font-bold">Your decision</p>
+        <!-- Actions (hidden once a decision exists) -->
+        <section id="action-area" class="mt-5" aria-labelledby="decision-label">
+          <h3 id="decision-label" class="mb-3 text-sm font-bold">Your decision</h3>
           <div class="flex flex-wrap items-center gap-3">
             <span class="tip-wrap">
-              <button type="button" id="btn-approve" class="btn btn-approve" aria-describedby="tip-approve">
+              <button type="button" id="btn-approve" class="btn btn-approve">
                 <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 Approve
               </button>
-              <span id="tip-approve" role="tooltip" class="tip" hidden>Only assigned signatory can approve this request</span>
+              <span id="tip-approve" role="tooltip" class="tip">Only assigned signatory can approve this request</span>
             </span>
             <span class="tip-wrap">
-              <button type="button" id="btn-reject" class="btn btn-reject" aria-describedby="tip-reject" aria-expanded="false" aria-controls="reject-drawer">
+              <button type="button" id="btn-reject" class="btn btn-reject" aria-expanded="false" aria-controls="reject-drawer">
                 <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 Reject
               </button>
-              <span id="tip-reject" role="tooltip" class="tip" hidden>Only assigned signatory can reject this request</span>
+              <span id="tip-reject" role="tooltip" class="tip">Only assigned signatory can reject this request</span>
             </span>
           </div>
           <p id="lock-hint" class="mt-3 text-xs font-bold text-ink/60" hidden>Locked: only the assigned signatory can approve or reject.</p>
 
           <!-- Rejection reason drawer -->
           <form id="reject-drawer" class="drawer mt-4" hidden novalidate>
-            <label class="label" for="reason">Why are you rejecting this? <span class="text-brand">(required)</span></label>
-            <textarea id="reason" class="field" rows="4" maxlength="300" placeholder="Tell Carla what needs to change so she can fix it and resubmit." aria-describedby="reason-help"></textarea>
+            <label class="label" for="reason">What needs to change? <span class="text-brand">(required)</span></label>
+            <textarea id="reason" class="field" rows="4" maxlength="300" aria-describedby="reason-help" placeholder="Tell Carla what to fix so she can revise and resubmit."></textarea>
             <div class="mt-1 flex justify-between gap-3 text-xs">
               <p id="reason-help" class="font-bold text-ink/60">At least 10 characters.</p>
               <p class="text-ink/50"><span id="reason-count">0</span>/300</p>
@@ -93,162 +101,43 @@
               <button type="button" id="cancel-reject" class="btn btn-outline">Cancel</button>
             </div>
           </form>
-        </div>
+        </section>
 
         <!-- Decision result -->
-        <div id="decision" class="decision mt-5" hidden aria-live="polite">
-          <p id="decision-title" class="text-base font-extrabold"></p>
+        <section id="decision" class="decision mt-5" tabindex="-1" aria-labelledby="decision-title" hidden>
+          <h3 id="decision-title" class="text-base font-extrabold"></h3>
           <p id="decision-sub" class="mt-1 text-sm text-ink/70"></p>
           <blockquote id="decision-reason" class="reason-quote" hidden></blockquote>
-          <button type="button" id="btn-reset" class="btn btn-outline mt-4 !h-9 !px-4">Reset demo</button>
-        </div>
-      </section>
+          <button type="button" id="btn-reset" class="btn btn-outline btn-sm mt-4">Reset demo</button>
+        </section>
+      </article>
 
       <!-- ================= AUDIT TRAIL ================= -->
       <aside class="panel min-w-0 lg:self-start" aria-labelledby="trail-title">
         <h2 id="trail-title" class="text-lg font-extrabold">Sign-off queue</h2>
         <p class="mt-1 text-sm text-ink/60">Each stage must finish before the next one starts.</p>
-        <ol class="trail mt-5" id="trail">
+        <ol class="trail mt-5">
           <li data-state="done">
-            <span class="node" data-n="1"></span>
+            <span class="node" data-n="1" aria-hidden="true"></span>
             <div><p class="trail-title text-sm font-extrabold">Submitted</p><p class="text-xs text-ink/60">Carla Tan · Nov 1, 9:12 AM</p></div>
           </li>
           <li data-state="done">
-            <span class="node" data-n="2"></span>
+            <span class="node" data-n="2" aria-hidden="true"></span>
             <div><p class="trail-title text-sm font-extrabold">Committee Lead approved</p><p class="text-xs text-ink/60">Ana Reyes · Nov 1, 4:30 PM</p></div>
           </li>
           <li id="stage-final" data-state="active">
-            <span class="node" data-n="3"></span>
-            <div>
-              <p class="trail-title text-sm font-extrabold">Exec Approver</p>
-              <p id="stage-final-text" class="text-xs text-ink/60">Miguel Santos · waiting for decision</p>
-            </div>
+            <span class="node" data-n="3" aria-hidden="true"></span>
+            <div><p class="trail-title text-sm font-extrabold">Exec Approver</p><p id="stage-final-text" class="text-xs text-ink/60"></p></div>
           </li>
           <li id="stage-closed" data-state="upcoming">
-            <span class="node" data-n="4"></span>
-            <div><p class="trail-title text-sm font-extrabold">Request closed</p><p id="stage-closed-text" class="text-xs text-ink/60">After the final decision</p></div>
+            <span class="node" data-n="4" aria-hidden="true"></span>
+            <div><p class="trail-title text-sm font-extrabold">Request closed</p><p id="stage-closed-text" class="text-xs text-ink/60"></p></div>
           </li>
         </ol>
       </aside>
     </div>
   </main>
 
-  <p id="sr-live" class="sr-only" aria-live="polite"></p>
-
-  <script>
-    /* Demo-only behaviour. In the real app, the signatory check and the
-       timestamp come from the server (Supabase), never from the browser. */
-    (() => {
-      const $ = (id) => document.getElementById(id);
-      const state = { mode: "signatory", decision: null };
-
-      const me = { name: "Miguel Santos", role: "Exec Approver" };
-      const viewer = { name: "Jon Dela Cruz", role: "Member" };
-
-      const stamp = () => {
-        const d = new Date();
-        return {
-          time: d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-          full: d.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
-        };
-      };
-
-      const buttons = [$("btn-approve"), $("btn-reject")];
-
-      function render() {
-        const isSig = state.mode === "signatory";
-        const decided = !!state.decision;
-
-        document.querySelectorAll(".seg-btn").forEach((b) => b.setAttribute("aria-pressed", b.dataset.mode === state.mode));
-
-        // Who is viewing
-        const banner = $("guard-banner");
-        banner.dataset.mode = state.mode;
-        $("guard-text").innerHTML = isSig
-          ? `Viewing as <strong>${me.name}</strong> (${me.role}). You are the <strong>assigned signatory</strong> for this stage.`
-          : `Viewing as <strong>${viewer.name}</strong> (${viewer.role}). You can read this request but cannot sign it.`;
-
-        // Buttons: enabled for signatory, locked for viewer
-        buttons.forEach((b) => {
-          b.setAttribute("aria-disabled", String(!isSig));
-          b.nextElementSibling.hidden = isSig;
-        });
-        $("lock-hint").hidden = isSig;
-        if (!isSig) closeDrawer();
-
-        // Decision vs. actions
-        $("action-area").hidden = decided;
-        $("decision").hidden = !decided;
-        if (decided) {
-          const { type, time, full, reason } = state.decision;
-          const badge = $("status-badge");
-          badge.className = `badge badge-${type}`;
-          badge.textContent = type === "approved" ? "Approved" : "Rejected";
-          $("decision").dataset.state = type;
-          $("decision-title").textContent = `${type === "approved" ? "Approved" : "Rejected"} at ${time} by ${me.name}, ${me.role}`;
-          $("decision-sub").textContent = type === "approved"
-            ? "The request moves on and Carla Tan has been told."
-            : "The request is closed and Carla Tan has been told why.";
-          $("decision-reason").hidden = type !== "rejected";
-          $("decision-reason").textContent = type === "rejected" ? `“${reason}”` : "";
-          const f = $("stage-final"); f.dataset.state = type;
-          $("stage-final-text").textContent = `${me.name} · ${type === "approved" ? "approved" : "rejected"} ${full}`;
-          const c = $("stage-closed"); c.dataset.state = type === "approved" ? "done" : "rejected";
-          $("stage-closed-text").textContent = type === "approved" ? `Fully approved · ${full}` : `Closed as rejected · ${full}`;
-          [f, c].forEach((li) => { li.classList.remove("trail-fresh"); li.offsetWidth; li.classList.add("trail-fresh"); });
-        } else {
-          const badge = $("status-badge");
-          badge.className = "badge badge-pending";
-          badge.textContent = "Pending";
-          $("stage-final").dataset.state = "active";
-          $("stage-final-text").textContent = `${me.name} · waiting for decision`;
-          $("stage-closed").dataset.state = "upcoming";
-          $("stage-closed-text").textContent = "After the final decision";
-        }
-      }
-
-      function openDrawer() { $("reject-drawer").hidden = false; $("btn-reject").setAttribute("aria-expanded", "true"); $("reason").focus(); }
-      function closeDrawer() {
-        $("reject-drawer").hidden = true; $("btn-reject").setAttribute("aria-expanded", "false");
-        $("reason").value = ""; $("reason-count").textContent = "0"; $("reason").removeAttribute("aria-invalid");
-        $("reason-help").textContent = "At least 10 characters.";
-      }
-
-      function blocked(btn) {
-        btn.classList.remove("animate-shake"); btn.offsetWidth; btn.classList.add("animate-shake");
-        $("sr-live").textContent = "Only the assigned signatory can do this.";
-      }
-
-      $("btn-approve").addEventListener("click", (e) => {
-        if (state.mode !== "signatory") return blocked(e.currentTarget);
-        state.decision = { type: "approved", ...stamp() };
-        render();
-      });
-      $("btn-reject").addEventListener("click", (e) => {
-        if (state.mode !== "signatory") return blocked(e.currentTarget);
-        $("reject-drawer").hidden ? openDrawer() : closeDrawer();
-      });
-      $("cancel-reject").addEventListener("click", () => { closeDrawer(); $("btn-reject").focus(); });
-      $("reason").addEventListener("input", (e) => { $("reason-count").textContent = e.target.value.length; });
-      $("reject-drawer").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const reason = $("reason").value.trim();
-        if (reason.length < 10) {
-          $("reason").setAttribute("aria-invalid", "true");
-          $("reason-help").textContent = "Please write at least 10 characters so the requester knows what to fix.";
-          $("reason").focus();
-          return;
-        }
-        state.decision = { type: "rejected", reason, ...stamp() };
-        closeDrawer();
-        render();
-      });
-      $("btn-reset").addEventListener("click", () => { state.decision = null; render(); });
-      document.querySelectorAll(".seg-btn").forEach((b) => b.addEventListener("click", () => { state.mode = b.dataset.mode; render(); }));
-      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("reject-drawer").hidden) { closeDrawer(); $("btn-reject").focus(); } });
-
-      render();
-    })();
-  </script>
+  <p id="sr-live" class="sr-only" role="status" aria-live="polite"></p>
 </body>
 </html>
