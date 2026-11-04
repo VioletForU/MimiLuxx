@@ -58,7 +58,7 @@ export default function DashboardList({ initialTasks }: { initialTasks: RankedTa
   const visibleTasks = tasks.filter((t) => t.status !== "done");
 
   if (visibleTasks.length === 0) {
-    return <p>Nothing due — you're all caught up.</p>;
+    return <p>Nothing due — you&apos;re all caught up.</p>;
   }
 
   return (
