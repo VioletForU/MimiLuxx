@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { getTaskPriority } from "@/lib/priority";
 
 const BADGE_STYLES: Record<string, string> = {
+  "Completed": "bg-green-100 text-green-700",
   "Overdue": "bg-red-100 text-red-700",
   "Due Today": "bg-orange-100 text-orange-700",
   "Due Soon": "bg-yellow-100 text-yellow-700",
@@ -37,7 +39,7 @@ export default function DashboardList({ initialTasks }: { initialTasks: RankedTa
 
     setTasks((prev) => {
       const updated = prev.map((t) =>
-        t.id === taskId ? { ...t, status: newStatus } : t
+        t.id === taskId ? { ...t, status: newStatus, priority: getTaskPriority(t.due_date, newStatus) } : t
       );
       return [...updated].sort((a, b) => b.priority.score - a.priority.score);
     });

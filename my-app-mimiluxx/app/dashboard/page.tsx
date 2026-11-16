@@ -33,6 +33,7 @@ function Icon({ path, className = "h-6 w-6 shrink-0 text-[#E5252A]" }: { path: s
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
+  Completed: "bg-green-100 text-green-700",
   Overdue: "bg-red-100 text-red-700",
   "Due Today": "bg-orange-100 text-orange-700",
   "Due Soon": "bg-yellow-100 text-yellow-700",
@@ -57,7 +58,7 @@ async function TasksContent({ userId }: { userId: string }) {
     .eq("user_id", userId);
 
   const rankedTasks = (tasks ?? [])
-    .map((task) => ({ ...task, priority: getTaskPriority(task.due_date) }))
+    .map((task) => ({ ...task, priority: getTaskPriority(task.due_date, task.status) }))
     .sort((a, b) => b.priority.score - a.priority.score);
 
   // Placeholder folder cards matching the 8 quick access slots

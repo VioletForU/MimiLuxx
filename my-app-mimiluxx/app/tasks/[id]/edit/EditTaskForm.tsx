@@ -21,6 +21,7 @@ const QUICK_DATES = [
 ] as const;
 
 const PRIORITY_BADGE: Record<string, string> = {
+  Completed: "bg-green-100 text-green-700",
   Overdue: "bg-red-100 text-red-700",
   "Due Today": "bg-orange-100 text-orange-700",
   "Due Soon": "bg-yellow-100 text-yellow-700",
@@ -94,7 +95,7 @@ export default function EditTaskForm() {
 
   const statuses = status === "blocked" ? [...BASE_STATUSES, BLOCKED] : BASE_STATUSES;
   const statusInfo = statuses.find((s) => s.value === status) ?? statuses[0];
-  const priority = getTaskPriority(dueDate || null);
+  const priority = getTaskPriority(dueDate || null, status);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
