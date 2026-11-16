@@ -1,14 +1,18 @@
 ﻿export type TaskPriority = {
   score: number;
-  label: "Overdue" | "Due Today" | "Due Soon" | "Upcoming" | "No Deadline";
+  label: "Completed" | "Overdue" | "Due Today" | "Due Soon" | "Upcoming" | "No Deadline";
 };
 
 /**
  * Basic priority score based on deadline proximity.
- * Higher score = more urgent. Status isn't factored in yet —
- * that comes later with US-05's live re-ranking.
+ * Higher score = more urgent. A finished task is never urgent, so a
+ * "done" status wins over the deadline and sinks below everything else.
  */
-export function getTaskPriority(dueDate: string | null): TaskPriority {
+export function getTaskPriority(dueDate: string | null, status?: string | null): TaskPriority {
+  if (status === "done") {
+    return { score: -1, label: "Completed" };
+  }
+
   if (!dueDate) {
     return { score: 0, label: "No Deadline" };
   }
