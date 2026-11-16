@@ -17,16 +17,32 @@ export default async function TasksPage() {
     );
   }
 
-  const { data: tasks, error } = await supabase
+  const COLS = "id, title, description, status, due_date, created_at";
+  // Ask for attachment counts too; if the attachments table doesn't exist yet (migration 006
+  // not run), fall back to the plain query so the task list still works.
+  const withCounts = await supabase
     .from("tasks")
-    .select("id, title, description, status, due_date, created_at")
+    .select(`${COLS}, task_attachments(count)`)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  let rows: BoardTask[];
+  let loadError: string | null = null;
+  if (!withCounts.error) {
+    rows = (withCounts.data ?? []).map((r) => {
+      const { task_attachments, ...task } = r as unknown as BoardTask & { task_attachments?: { count: number }[] };
+      return { ...task, attachment_count: task_attachments?.[0]?.count ?? 0 };
+    });
+  } else {
+    const plain = await supabase.from("tasks").select(COLS).eq("user_id", user.id).order("created_at", { ascending: false });
+    rows = (plain.data ?? []) as BoardTask[];
+    loadError = plain.error?.message ?? null;
+  }
+
   return (
     <TaskBoard
-      tasks={(tasks ?? []) as BoardTask[]}
-      loadError={error?.message ?? null}
+      tasks={rows}
+      loadError={loadError}
       nowIso={new Date().toISOString()}
     />
   );

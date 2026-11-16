@@ -123,6 +123,14 @@ export async function DELETE(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
+  // Remember the files first: deleting the task cascades the attachment rows, but not the files in Storage.
+  // (If the attachments table doesn't exist yet this simply returns nothing.)
+  const { data: files } = await supabase
+    .from("task_attachments")
+    .select("path")
+    .eq("task_id", id)
+    .eq("user_id", user.id);
+
   const { error } = await supabase
     .from("tasks")
     .delete()
@@ -131,6 +139,12 @@ export async function DELETE(_request: Request, { params }: Params) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Only after the task is really gone: clean up its files (best effort; an orphan is harmless and invisible).
+  const paths = (files ?? []).map((f) => f.path as string);
+  if (paths.length > 0) {
+    await supabase.storage.from("task-files").remove(paths);
   }
 
   return NextResponse.json({ success: true });
