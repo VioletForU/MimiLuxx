@@ -72,10 +72,6 @@ export default async function AppSidebar({ active }: { active?: SidebarKey }) {
         {item("approvals", "/approvals/overdue", ICONS.check, "Approvals")}
         {item("announcements", "/announcements", ICONS.bell, "Announcements")}
         {item("settings", "/settings", ICONS.settings, "Settings")}
-        <Link href="/settings" className={idle}>
-          <Icon path={ICONS.account} />
-          <span>Account</span>
-        </Link>
         {profile?.role === "President" && item("admin", "/admin/users", ICONS.account, "Admin")}
 
         <SidebarLogout>
