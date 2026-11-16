@@ -15,6 +15,7 @@ import type {
   LoadErrors,
 } from "@/lib/types/admin";
 import AdminPanel from "./AdminPanel";
+import AppSidebar from "@/components/app_navigation/AppSidebar";
 
 type OrgRow = { id: string; name: string; slug: string; created_by: string; created_at: string };
 type ProposalRow = {
@@ -34,6 +35,18 @@ type TaskRow = {
   created_at: string;
 };
 
+/** Grey admin canvas with the shared AppSidebar on the left so admins can navigate away. */
+function AdminShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#d4d4d4] text-neutral-900">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-8 px-6 pb-24 pt-10 sm:pt-14 lg:flex-row lg:gap-12 lg:px-10">
+        <AppSidebar active="admin" />
+        <main className="w-full min-w-0 flex-1">{children}</main>
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminPage() {
   // Sends signed-out visitors to /login, and anyone who is not a President or Adviser to /unauthorized.
   await requireRole(ADMIN_ROLES);
@@ -48,8 +61,8 @@ export default async function AdminPage() {
     admin = createAdminClient();
   } catch {
     return (
-      <div className="min-h-screen bg-[#d4d4d4] text-neutral-900">
-        <main className="mx-auto max-w-2xl px-6 py-12">
+      <AdminShell>
+        <div className="max-w-2xl">
           <h1 className="text-4xl font-extrabold tracking-tight">Admin panel</h1>
           <div className="mt-6 rounded-3xl bg-white p-7 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Setup needed</p>
@@ -63,8 +76,8 @@ export default async function AdminPage() {
               (and to Vercel for deployed sites), then restart.
             </p>
           </div>
-        </main>
-      </div>
+        </div>
+      </AdminShell>
     );
   }
 
@@ -139,8 +152,7 @@ export default async function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#d4d4d4] text-neutral-900">
-    <main className="mx-auto max-w-6xl px-6 pb-24 pt-10 sm:pt-14">
+    <AdminShell>
       <AdminPanel
         users={users}
         overview={(overviewRes.data ?? null) as AdminOverview | null}
@@ -153,7 +165,6 @@ export default async function AdminPage() {
         currentUserId={user?.id ?? null}
         myOrgCount={organizations.filter((o) => o.created_by === user?.id).length}
       />
-    </main>
-    </div>
+    </AdminShell>
   );
 }
