@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CommentThread from "@/components/CommentThread";
+import { SavedAttachments } from "@/components/attachments/TaskAttachments";
 import DeleteButton from "./DeleteButton";
 import { DAY_MS, spanText } from "@/lib/time";
 
@@ -14,6 +15,7 @@ export type BoardTask = {
   status: string;
   due_date: string | null;
   created_at: string;
+  attachment_count?: number;
 };
 
 type Tab = "pending" | "submitted" | "missed";
@@ -238,7 +240,14 @@ export default function TaskBoard({
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-4 px-4 py-3">
                       <div className="min-w-0">
                         <p className="truncate font-extrabold">{t.title}</p>
-                        <p className="truncate text-xs text-neutral-500">Due {fmtDue(t)}</p>
+                        <p className="truncate text-xs text-neutral-500">
+                          Due {fmtDue(t)}
+                          {!!t.attachment_count && (
+                            <span className="ml-2 font-semibold" aria-label={`${t.attachment_count} ${t.attachment_count === 1 ? "attachment" : "attachments"}`}>
+                              <span aria-hidden="true">📎 {t.attachment_count}</span>
+                            </span>
+                          )}
+                        </p>
                       </div>
                       <span className="shrink-0 rounded-full bg-[var(--tone)] px-3 py-1 text-xs font-bold text-[var(--tone-ink)]">
                         {chipText(t, now)}
@@ -277,6 +286,8 @@ export default function TaskBoard({
               ) : (
                 <p className="text-sm text-neutral-400">No description.</p>
               )}
+
+              <SavedAttachments key={open.id} taskId={open.id} readOnly />
 
               <div className="flex flex-wrap items-center gap-2">
                 <select
