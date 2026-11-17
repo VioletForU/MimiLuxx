@@ -1,4 +1,5 @@
 export type UserRole =
+  | "Admin"
   | "President"
   | "Adviser"
   | "Vice President"
@@ -7,6 +8,7 @@ export type UserRole =
   | "Member";
 
 export const ROLES: UserRole[] = [
+  "Admin",
   "President",
   "Adviser",
   "Vice President",
@@ -17,6 +19,7 @@ export const ROLES: UserRole[] = [
 
 // "Adviser" is stored in the database as "Adviser"; this is how it is shown.
 export const ROLE_LABELS: Record<UserRole, string> = {
+  Admin: "Admin",
   President: "President",
   Adviser: "Adviser / Teacher Coordinator",
   "Vice President": "Vice President",
@@ -25,11 +28,15 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   Member: "Member",
 };
 
-/** Can open the admin panel, change roles and delete data. */
-export const ADMIN_ROLES: UserRole[] = ["President", "Adviser"];
+/**
+ * Can open the admin panel, change roles and delete data.
+ * "Admin" is a system role: it has full admin access but is not a signatory
+ * in the proposal approval chain (see APPROVAL_CHAIN).
+ */
+export const ADMIN_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 
 /** Can create organizations. */
-export const ORG_CREATOR_ROLES: UserRole[] = ["President", "Adviser"];
+export const ORG_CREATOR_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 
 // These two numbers are enforced by the database (admin-panel-setup.sql).
 // They are repeated here only so the screen can show them.
