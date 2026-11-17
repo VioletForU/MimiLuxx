@@ -65,7 +65,7 @@ export default function AdminPanel({
       <header className="mb-8">
         <p className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-neutral-700">
           <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#EA2323]" />
-          Presidents and Advisers only
+          Admins only
         </p>
         <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl">
           Admin panel

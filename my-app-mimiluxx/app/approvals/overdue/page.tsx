@@ -113,7 +113,7 @@ export default async function OverdueApprovalsPage() {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <section className="min-w-0 rounded-2xl border border-ink/15 bg-white p-6 shadow-sm lg:self-start" aria-labelledby="cfg-title">
             <h2 id="cfg-title" className="text-lg font-extrabold">Time limits</h2>
-            <p className="mt-1 text-sm text-ink/60">Per signatory role. Only a President or Adviser can change these.</p>
+            <p className="mt-1 text-sm text-ink/60">Per signatory role. Only an Admin, President or Adviser can change these.</p>
             <LimitsForm initial={limits} canEdit={isAdminRole(me?.role)} />
           </section>
 

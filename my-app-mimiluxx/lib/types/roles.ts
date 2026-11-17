@@ -35,6 +35,13 @@ export const ROLE_LABELS: Record<UserRole, string> = {
  */
 export const ADMIN_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 
+/**
+ * Can open the /admin panel (view users, change roles, delete data).
+ * Narrower than ADMIN_ROLES on purpose: President and Adviser keep their other
+ * powers (announcements, overdue limits, flags) but cannot use the panel.
+ */
+export const PANEL_ROLES: UserRole[] = ["Admin"];
+
 /** Can create organizations. */
 export const ORG_CREATOR_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 
@@ -51,4 +58,8 @@ export const APPROVAL_CHAIN: { stage_order: number; approver_role: UserRole }[] 
 
 export function isAdminRole(role: string | null | undefined): boolean {
   return !!role && (ADMIN_ROLES as string[]).includes(role);
+}
+
+export function isPanelAdmin(role: string | null | undefined): boolean {
+  return !!role && (PANEL_ROLES as string[]).includes(role);
 }

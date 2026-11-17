@@ -1,6 +1,6 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
-import { isAdminRole, type UserRole } from "@/lib/types/roles";
+import { isPanelAdmin, type UserRole } from "@/lib/types/roles";
 
 export default function AppNav({ role }: { role: UserRole }) {
   return (
@@ -16,7 +16,7 @@ export default function AppNav({ role }: { role: UserRole }) {
         <Link href="/dashboard">Dashboard</Link>
         <Link href="/tasks">All Tasks</Link>
         <Link href="/settings">Settings</Link>
-        {isAdminRole(role) && <Link href="/admin/users">Admin</Link>}
+        {isPanelAdmin(role) && <Link href="/admin/users">Admin</Link>}
       </div>
       <LogoutButton />
     </nav>
