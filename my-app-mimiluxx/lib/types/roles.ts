@@ -42,6 +42,18 @@ export const ADMIN_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
  */
 export const PANEL_ROLES: UserRole[] = ["Admin"];
 
+/**
+ * Roles a President can give people inside their own organization.
+ * "President" is deliberately missing: only an Admin appoints presidents.
+ */
+export const ORG_ASSIGNABLE_ROLES: UserRole[] = [
+  "Adviser",
+  "Vice President",
+  "Secretary",
+  "Committee Head",
+  "Member",
+];
+
 /** Can create organizations. */
 export const ORG_CREATOR_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 

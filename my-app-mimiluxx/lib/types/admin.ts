@@ -24,6 +24,8 @@ export type AdminOrg = {
   slug: string;
   created_by: string;
   owner_name: string;
+  president_id: string | null;
+  president_name: string | null;
   created_at: string;
   committees: AdminCommittee[];
 };
@@ -87,3 +89,25 @@ export type LoadErrors = {
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 export type DeletableKind = "organization" | "committee" | "proposal" | "task";
+
+export type OrgActionResult = { ok: true; message?: string } | { ok: false; error: string };
+
+export type OrgMember = {
+  id: string;
+  user_id: string;
+  role: UserRole;
+  committee_id: string | null;
+  full_name: string | null;
+  username: string | null;
+  email: string | null;
+  created_at: string;
+};
+
+export type OrgInvite = {
+  id: string;
+  email: string;
+  role: UserRole;
+  committee_id: string | null;
+  created_at: string;
+  expires_at: string;
+};

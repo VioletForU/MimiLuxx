@@ -22,6 +22,15 @@ export default async function OrgsPage() {
     .select("id, name, slug")
     .order("name", { ascending: true });
 
+  // Organizations this person is president of (empty until 008_org_members.sql is run).
+  const { data: presidentOf } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .eq("role", "President");
+  const managedIds = new Set((presidentOf ?? []).map((m) => m.organization_id as string));
+  const managed = (data ?? []).filter((o) => managedIds.has(o.id));
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-white text-ink">
       <header className="flex select-none flex-col items-center pt-[clamp(1.5rem,5vh,3.5rem)] text-center">
@@ -40,6 +49,21 @@ export default async function OrgsPage() {
         </div>
       ) : (
         <OrgCarousel orgs={(data ?? []) as OrgCard[]} />
+      )}
+
+      {managed.length > 0 && (
+        <div className="mx-auto mt-6 flex max-w-xl flex-wrap items-center justify-center gap-2 px-4 text-sm">
+          <span className="font-semibold text-neutral-500">You manage:</span>
+          {managed.map((o) => (
+            <Link
+              key={o.id}
+              href={`/orgs/${o.slug}/manage`}
+              className="rounded-full bg-neutral-900 px-3.5 py-1.5 font-semibold text-white transition hover:bg-black"
+            >
+              {o.name}
+            </Link>
+          ))}
+        </div>
       )}
 
       <nav

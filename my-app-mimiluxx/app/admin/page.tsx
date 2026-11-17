@@ -81,7 +81,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [usersRes, overviewRes, healthRes, activityRes, orgsRes, committeesRes, proposalsRes, tasksRes] =
+  const [usersRes, overviewRes, healthRes, activityRes, orgsRes, committeesRes, proposalsRes, tasksRes, presidentsRes] =
     await Promise.all([
       admin.rpc("get_admin_users"),
       admin.rpc("get_admin_overview"),
@@ -105,6 +105,7 @@ export default async function AdminPage() {
         .select("id, title, status, due_date, user_id, created_at")
         .order("created_at", { ascending: false })
         .limit(200),
+      admin.from("organization_members").select("organization_id, user_id").eq("role", "President"),
     ]);
 
   const users = (usersRes.data ?? []) as AdminUser[];
@@ -113,10 +114,19 @@ export default async function AdminPage() {
   );
   const nameOf = (id: string) => nameById.get(id) ?? "Unknown";
 
+  // Before 008_org_members.sql is run this query errors; presidents are simply blank then.
+  const presidentByOrg = new Map<string, string>(
+    ((presidentsRes.data ?? []) as { organization_id: string; user_id: string }[]).map(
+      (m) => [m.organization_id, m.user_id] as [string, string]
+    )
+  );
+
   const committees = (committeesRes.data ?? []) as AdminCommittee[];
   const organizations: AdminOrg[] = ((orgsRes.data ?? []) as OrgRow[]).map((o) => ({
     ...o,
     owner_name: nameOf(o.created_by),
+    president_id: presidentByOrg.get(o.id) ?? null,
+    president_name: presidentByOrg.has(o.id) ? nameOf(presidentByOrg.get(o.id)!) : null,
     committees: committees.filter((c) => c.organization_id === o.id),
   }));
 
@@ -144,6 +154,7 @@ export default async function AdminPage() {
     content:
       orgsRes.error?.message ??
       committeesRes.error?.message ??
+      presidentsRes.error?.message ??
       proposalsRes.error?.message ??
       tasksRes.error?.message ??
       null,
@@ -163,7 +174,6 @@ export default async function AdminPage() {
         tasks={tasks}
         loadErrors={loadErrors}
         currentUserId={user?.id ?? null}
-        myOrgCount={organizations.filter((o) => o.created_by === user?.id).length}
       />
     </AdminShell>
   );

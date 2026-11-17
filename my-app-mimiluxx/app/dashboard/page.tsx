@@ -245,6 +245,9 @@ export default async function DashboardPage({ searchParams }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Turns any pending email invites for this person into memberships.
+  if (user) await supabase.rpc("claim_my_invites");
+
   if (!user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#E8EAEF] p-6 text-[#333]">

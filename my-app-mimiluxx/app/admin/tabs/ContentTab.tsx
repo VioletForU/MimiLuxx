@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { createCommittee, createOrganization, deleteContent } from "@/app/actions/admin";
-import {
-  MAX_COMMITTEES_PER_ORGANIZATION,
-  MAX_ORGANIZATIONS_PER_CREATOR,
-} from "@/lib/types/roles";
-import type { AdminOrg, AdminProposal, AdminTask, DeletableKind } from "@/lib/types/admin";
+import Link from "next/link";
+import { createCommittee, createOrganization, deleteContent, setOrgPresident } from "@/app/actions/admin";
+import { MAX_COMMITTEES_PER_ORGANIZATION } from "@/lib/types/roles";
+import type { AdminOrg, AdminProposal, AdminTask, AdminUser, DeletableKind } from "@/lib/types/admin";
 import {
   badge,
   card,
@@ -61,16 +59,16 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ContentTab({
   organizations,
+  users,
   proposals,
   tasks,
-  myOrgCount,
   error,
   notify,
 }: {
   organizations: AdminOrg[];
+  users: AdminUser[];
   proposals: AdminProposal[];
   tasks: AdminTask[];
-  myOrgCount: number;
   error: string | null;
   notify: Notify;
 }) {
@@ -78,6 +76,8 @@ export default function ContentTab({
   const [removed, setRemoved] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState("");
+  const [presidentId, setPresidentId] = useState("");
+  const [presidentPick, setPresidentPick] = useState<Record<string, string>>({});
   const [committeeNames, setCommitteeNames] = useState<Record<string, string>>({});
 
   async function handleDelete(kind: DeletableKind, id: string, label: string, warning = "") {
@@ -98,7 +98,7 @@ export default function ContentTab({
   async function handleCreateOrg(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusyId("new-org");
-    const result = await createOrganization(orgName);
+    const result = await createOrganization(orgName, presidentId);
     setBusyId(null);
 
     if (!result.ok) {
@@ -106,8 +106,29 @@ export default function ContentTab({
       return;
     }
     setOrgName("");
+    setPresidentId("");
     notify("success", "Organization created.");
   }
+
+  async function handleSetPresident(orgId: string) {
+    const userId = presidentPick[orgId];
+    if (!userId) return;
+    setBusyId(`president-${orgId}`);
+    const result = await setOrgPresident(orgId, userId);
+    setBusyId(null);
+
+    if (!result.ok) {
+      notify("error", result.error);
+      return;
+    }
+    setPresidentPick((cur) => ({ ...cur, [orgId]: "" }));
+    notify("success", "President updated.");
+  }
+
+  const userOptions = users.map((u) => ({
+    id: u.id,
+    text: `${u.full_name || u.username || "Unnamed"}${u.email ? ` (${u.email})` : ""}`,
+  }));
 
   async function handleCreateCommittee(e: FormEvent<HTMLFormElement>, orgId: string) {
     e.preventDefault();
@@ -154,8 +175,8 @@ export default function ContentTab({
           <form onSubmit={handleCreateOrg} className={card}>
             <h2 className={heading}>New organization</h2>
             <p className={hint}>
-              You have created {myOrgCount} of {MAX_ORGANIZATIONS_PER_CREATOR} organizations. Each
-              one can have up to {MAX_COMMITTEES_PER_ORGANIZATION} committees.
+              Pick who will be the president. They then create the committees, invite members by email
+              and set their roles. Each organization can have up to {MAX_COMMITTEES_PER_ORGANIZATION} committees.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <label className="sr-only" htmlFor="org-name">
@@ -169,9 +190,25 @@ export default function ContentTab({
                 maxLength={60}
                 className={`${inputClass} w-full sm:w-72`}
               />
+              <label className="sr-only" htmlFor="org-president">
+                President
+              </label>
+              <select
+                id="org-president"
+                value={presidentId}
+                onChange={(e) => setPresidentId(e.target.value)}
+                className={`${inputClass} w-full sm:w-80`}
+              >
+                <option value="">Choose a president…</option>
+                {userOptions.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.text}
+                  </option>
+                ))}
+              </select>
               <button
                 type="submit"
-                disabled={busyId === "new-org" || !orgName.trim() || myOrgCount >= MAX_ORGANIZATIONS_PER_CREATOR}
+                disabled={busyId === "new-org" || !orgName.trim() || !presidentId}
                 className={darkButton}
               >
                 Create
@@ -216,6 +253,44 @@ export default function ContentTab({
               </div>
 
               <div className={`${panel} mt-6`}>
+                <h3 className={label}>President</h3>
+                <p className="mt-2 text-sm font-medium text-neutral-900">
+                  {org.president_name ?? "No president yet"}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <label className="sr-only" htmlFor={`president-${org.id}`}>
+                    New president for {org.name}
+                  </label>
+                  <select
+                    id={`president-${org.id}`}
+                    value={presidentPick[org.id] ?? ""}
+                    onChange={(e) => setPresidentPick((cur) => ({ ...cur, [org.id]: e.target.value }))}
+                    className={`${inputClass} w-full sm:w-80`}
+                  >
+                    <option value="">{org.president_id ? "Change president…" : "Choose a president…"}</option>
+                    {userOptions
+                      .filter((u) => u.id !== org.president_id)
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.text}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={busyId === `president-${org.id}` || !presidentPick[org.id]}
+                    onClick={() => handleSetPresident(org.id)}
+                    className={darkButton}
+                  >
+                    Set president
+                  </button>
+                  <Link href={`/orgs/${org.slug}/manage`} className="text-sm font-semibold underline underline-offset-4">
+                    Manage members
+                  </Link>
+                </div>
+              </div>
+
+              <div className={`${panel} mt-4`}>
                 <h3 className={label}>
                   Committees ({org.committees.filter((c) => !removed.has(c.id)).length} of{" "}
                   {MAX_COMMITTEES_PER_ORGANIZATION})
