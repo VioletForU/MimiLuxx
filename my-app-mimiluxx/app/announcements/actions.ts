@@ -24,7 +24,7 @@ async function requireAdmin() {
   } = await supabase.auth.getUser();
   if (!user) return { supabase, user: null, error: "Not logged in." };
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!isAdminRole(me?.role)) return { supabase, user: null, error: "Only a President or Adviser can manage announcements." };
+  if (!isAdminRole(me?.role)) return { supabase, user: null, error: "Only an Admin, President or Adviser can manage announcements." };
   return { supabase, user, error: null };
 }
 

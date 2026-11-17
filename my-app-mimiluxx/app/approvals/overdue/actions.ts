@@ -14,7 +14,7 @@ export async function saveLimits(limits: ApprovalLimit[]): Promise<ActionResult>
   if (!user) return { ok: false, error: "Not logged in." };
 
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!isAdminRole(me?.role)) return { ok: false, error: "Only a President or Adviser can change time limits." };
+  if (!isAdminRole(me?.role)) return { ok: false, error: "Only an Admin, President or Adviser can change time limits." };
 
   for (const l of limits) {
     if (!Number.isInteger(l.amount) || l.amount < 1) return { ok: false, error: `${l.role}: the limit must be at least 1.` };

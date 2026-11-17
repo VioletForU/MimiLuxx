@@ -36,6 +36,7 @@ export function sortAnnouncements(list: Announcement[]): Announcement[] {
 
 /** Which audiences a role may see. */
 export function visibleTo(a: Announcement, role: string): boolean {
+  if (role === "Admin") return true;
   if (a.audience === "All members") return true;
   if (a.audience === "Committee Heads") return role === "Committee Head" || role === "President" || role === "Adviser";
   if (a.audience === "Presidents") return role === "President" || role === "Adviser";

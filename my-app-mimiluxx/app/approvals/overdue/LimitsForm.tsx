@@ -89,7 +89,7 @@ export default function LimitsForm({ initial, canEdit }: { initial: ApprovalLimi
           Run check now
         </button>
       </div>
-      {!canEdit && <p className="text-xs text-ink/60">Only a President or Adviser can change these.</p>}
+      {!canEdit && <p className="text-xs text-ink/60">Only an Admin, President or Adviser can change these.</p>}
     </form>
   );
 }

@@ -55,7 +55,7 @@ const FEATURES = [
   },
   {
     title: "Roles that match your organization",
-    body: "Presidents, Advisers, Committee Heads and members each get what they need. Presidents and Advisers manage roles from the admin panel.",
+    body: "Presidents, Advisers, Committee Heads and members each get what they need. Admins manage roles from the admin panel.",
     icon: (
       <>
         <circle cx="9" cy="8" r="3" />
@@ -70,7 +70,7 @@ const FEATURES = [
 const STEPS = [
   {
     title: "Create your account",
-    body: "Sign up with your institutional email and confirm it. A President or Adviser can set your role.",
+    body: "Sign up with your institutional email and confirm it. An Admin can set your role.",
   },
   {
     title: "Add your work",
@@ -291,7 +291,7 @@ export default async function LandingPage() {
           </h2>
           <p className="mt-3 max-w-2xl text-neutral-300">
             Every proposal passes through the same stages, in order, and each stage belongs to
-            one role. Presidents and Advisers also manage roles and organizations.
+            one role. Admins also manage roles and organizations.
           </p>
 
           <ul className="mt-12 grid gap-5 md:grid-cols-3">

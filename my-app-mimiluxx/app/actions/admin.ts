@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ROLES, isAdminRole, type UserRole } from "@/lib/types/roles";
+import { ROLES, isPanelAdmin, type UserRole } from "@/lib/types/roles";
 import type { ActionResult, DeletableKind } from "@/lib/types/admin";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,7 +32,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (error || !isAdminRole(data?.role)) throw new Error("Forbidden");
+  if (error || !isPanelAdmin(data?.role)) throw new Error("Forbidden");
   return user;
 }
 

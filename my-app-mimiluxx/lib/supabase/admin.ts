@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 /**
  * Server-only Supabase client that uses the secret (service role) key.
  * It bypasses Row Level Security, so only use it after confirming the
- * signed-in user is a President or Adviser. Never import this from a
+ * signed-in user is an Admin. Never import this from a
  * "use client" file.
  */
 export function createAdminClient() {

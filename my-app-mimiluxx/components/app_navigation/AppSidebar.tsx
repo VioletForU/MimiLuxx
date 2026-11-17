@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SidebarLogout from "@/app/dashboard/SidebarLogout";
 import SidebarProfile from "./SidebarProfile";
-import { isAdminRole } from "@/lib/types/roles";
+import { isPanelAdmin } from "@/lib/types/roles";
 
 export type SidebarKey = "home" | "orgs" | "tasks" | "approvals" | "announcements" | "settings" | "admin";
 
@@ -73,7 +73,7 @@ export default async function AppSidebar({ active }: { active?: SidebarKey }) {
         {item("approvals", "/approvals/overdue", ICONS.check, "Approvals")}
         {item("announcements", "/announcements", ICONS.bell, "Announcements")}
         {item("settings", "/settings", ICONS.settings, "Settings")}
-        {isAdminRole(profile?.role) && item("admin", "/admin/users", ICONS.account, "Admin")}
+        {isPanelAdmin(profile?.role) && item("admin", "/admin/users", ICONS.account, "Admin")}
 
         <SidebarLogout>
           <Icon path={ICONS.logout} />

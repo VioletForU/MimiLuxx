@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/supabase/requireRole";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ADMIN_ROLES } from "@/lib/types/roles";
+import { PANEL_ROLES } from "@/lib/types/roles";
 import type { ProposalStatus } from "@/lib/types/proposal";
 import type {
   ActivityItem,
@@ -48,8 +48,8 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 export default async function AdminPage() {
-  // Sends signed-out visitors to /login, and anyone who is not a President or Adviser to /unauthorized.
-  await requireRole(ADMIN_ROLES);
+  // Sends signed-out visitors to /login, and anyone who is not an Admin to /unauthorized.
+  await requireRole(PANEL_ROLES);
 
   const supabase = await createClient();
   const {
