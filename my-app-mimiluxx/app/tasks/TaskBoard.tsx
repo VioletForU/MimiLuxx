@@ -287,7 +287,18 @@ export default function TaskBoard({
                 <p className="text-sm text-neutral-400">No description.</p>
               )}
 
-              <SavedAttachments key={open.id} taskId={open.id} readOnly />
+              <div className="grid gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">Attachments</p>
+                <SavedAttachments
+                  key={open.id}
+                  taskId={open.id}
+                  disabled={busy}
+                  onCountChange={(n) => {
+                    const id = open.id;
+                    setTasks((prev) => prev.map((t) => (t.id === id && (t.attachment_count ?? 0) !== n ? { ...t, attachment_count: n } : t)));
+                  }}
+                />
+              </div>
 
               <div className="flex flex-wrap items-center gap-2">
                 <select
