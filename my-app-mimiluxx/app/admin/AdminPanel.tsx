@@ -39,7 +39,6 @@ export default function AdminPanel({
   tasks,
   loadErrors,
   currentUserId,
-  myOrgCount,
 }: {
   users: AdminUser[];
   overview: AdminOverview | null;
@@ -50,7 +49,6 @@ export default function AdminPanel({
   tasks: AdminTask[];
   loadErrors: LoadErrors;
   currentUserId: string | null;
-  myOrgCount: number;
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [notice, setNotice] = useState<Notice>(null);
@@ -118,9 +116,9 @@ export default function AdminPanel({
       {tab === "content" && (
         <ContentTab
           organizations={organizations}
+          users={users}
           proposals={proposals}
           tasks={tasks}
-          myOrgCount={myOrgCount}
           error={loadErrors.content}
           notify={notify}
         />

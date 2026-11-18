@@ -42,6 +42,25 @@ export const ADMIN_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
  */
 export const PANEL_ROLES: UserRole[] = ["Admin"];
 
+/**
+ * Organization-wide leadership: can open every committee and every member's
+ * personal folder. A Committee Head has the same power, but only inside their
+ * own committee. Keep in sync with is_org_leadership() in 010_member_files.sql.
+ */
+export const ORG_LEADERSHIP_ROLES: UserRole[] = ["President", "Adviser", "Vice President", "Secretary"];
+
+/**
+ * Roles a President can give people inside their own organization.
+ * "President" is deliberately missing: only an Admin appoints presidents.
+ */
+export const ORG_ASSIGNABLE_ROLES: UserRole[] = [
+  "Adviser",
+  "Vice President",
+  "Secretary",
+  "Committee Head",
+  "Member",
+];
+
 /** Can create organizations. */
 export const ORG_CREATOR_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 

@@ -61,12 +61,33 @@ async function TasksContent({ userId }: { userId: string }) {
     .map((task) => ({ ...task, priority: getTaskPriority(task.due_date, task.status) }))
     .sort((a, b) => b.priority.score - a.priority.score);
 
-  // Placeholder folder cards matching the 8 quick access slots
-  const quickAccessFolders = Array.from({ length: 8 }, (_, idx) => ({
-    id: idx + 1,
-    name: "Org Name",
-    description: "Description",
-  }));
+  // Quick Access: the organizations this person belongs to (an Admin sees all of them).
+  // If 008_org_members.sql hasn't been run yet, the membership query errors and this stays empty.
+  type QuickOrg = { id: string; name: string; slug: string; role: string };
+  const { data: me } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  const isAdmin = me?.role === "Admin";
+
+  let quickOrgs: QuickOrg[] = [];
+  if (isAdmin) {
+    const { data: all } = await supabase
+      .from("organizations")
+      .select("id, name, slug")
+      .order("created_at", { ascending: false })
+      .limit(8);
+    quickOrgs = (all ?? []).map((o) => ({ ...o, role: "Admin" }));
+  } else {
+    const { data: memberships } = await supabase
+      .from("organization_members")
+      .select("organization_id, role")
+      .eq("user_id", userId)
+      .limit(8);
+    const ids = (memberships ?? []).map((m) => m.organization_id as string);
+    if (ids.length > 0) {
+      const { data: orgs } = await supabase.from("organizations").select("id, name, slug").in("id", ids);
+      const roleById = new Map((memberships ?? []).map((m) => [m.organization_id as string, m.role as string]));
+      quickOrgs = (orgs ?? []).map((o) => ({ ...o, role: roleById.get(o.id) ?? "Member" }));
+    }
+  }
 
   return (
     <div className="flex flex-col gap-9">
@@ -75,28 +96,39 @@ async function TasksContent({ userId }: { userId: string }) {
         <h2 className="mb-5 text-[28px] font-black tracking-tight text-[#262626]">
           Quick Access
         </h2>
-        <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
-          {quickAccessFolders.map((folder) => (
-            <div
-              key={folder.id}
-              className="group relative flex h-[138px] cursor-pointer flex-col justify-between overflow-hidden rounded-[18px] bg-[#C2C5C8] shadow-xs transition duration-200 hover:-translate-y-[3px] hover:shadow-[0_10px_20px_-4px_rgba(0,0,0,0.18)]"
-            >
-              <div className="absolute right-0 top-0 h-3.5 w-[52%] rounded-bl-[10px] bg-[#E5252A]" />
-              <div className="p-3" />
-              <div className="flex items-center justify-between rounded-b-[18px] bg-[#111111] px-4 py-3">
-                <div>
-                  <h4 className="text-[13px] font-bold leading-tight text-white">{folder.name}</h4>
-                  <p className="mt-0.5 text-[10px] leading-tight text-[#888888]">{folder.description}</p>
+        {quickOrgs.length === 0 ? (
+          <p className="rounded-2xl bg-[#F6F6F6] px-5 py-6 text-sm text-[#6b6b6b]">
+            You aren&apos;t in an organization yet.{" "}
+            <Link href="/orgs" className="font-semibold text-[#111111] underline underline-offset-4">
+              Browse organizations
+            </Link>
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+            {quickOrgs.map((org) => (
+              <Link
+                key={org.id}
+                href={`/orgs/${org.slug}/folders`}
+                aria-label={org.name}
+                className="group relative flex h-[138px] flex-col justify-between overflow-hidden rounded-[18px] bg-[#C2C5C8] shadow-xs transition duration-200 hover:-translate-y-[3px] hover:shadow-[0_10px_20px_-4px_rgba(0,0,0,0.18)]"
+              >
+                <div className="absolute right-0 top-0 h-3.5 w-[52%] rounded-bl-[10px] bg-[#E5252A]" />
+                <div className="p-3" />
+                <div className="flex items-center justify-between rounded-b-[18px] bg-[#111111] px-4 py-3">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-[13px] font-bold leading-tight text-white">{org.name}</h4>
+                    <p className="mt-0.5 text-[10px] leading-tight text-[#888888]">{org.role}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center -space-x-1.5">
+                    <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
+                    <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
+                    <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
+                  </div>
                 </div>
-                <div className="flex items-center -space-x-1.5">
-                  <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
-                  <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
-                  <div className="h-4 w-4 rounded-full border border-[#111] bg-white" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* RECENT (live task data) */}
@@ -244,6 +276,9 @@ export default async function DashboardPage({ searchParams }: Props) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Turns any pending email invites for this person into memberships.
+  if (user) await supabase.rpc("claim_my_invites");
 
   if (!user) {
     return (
