@@ -54,6 +54,8 @@ export function validateFile(file: File): string | null {
   return null;
 }
 
+export const mimeTypeFor = (name: string): string | undefined => TYPES[extOf(name)];
+
 const safeName = (name: string) => name.replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "").slice(-100) || "file";
 
 export function friendlyStorageError(message: string): string {
@@ -121,3 +123,5 @@ export async function openAttachment(supabase: SupabaseClient, a: TaskAttachment
   link.click();
   link.remove();
 }
+
+export const safeFileName = safeName;
