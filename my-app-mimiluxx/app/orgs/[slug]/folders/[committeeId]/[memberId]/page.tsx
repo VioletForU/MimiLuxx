@@ -2,16 +2,20 @@ import { notFound, redirect } from "next/navigation";
 import PageFrame from "@/components/app_navigation/PageFrame";
 import { displayName, loadOrgContext } from "@/lib/orgFolders";
 import { canOpenCommittee, canOpenMemberFolder, isCommitteeLead } from "@/lib/orgAccess";
-import type { MemberFile } from "@/lib/memberFiles";
+import type { MemberFile, MemberFolder } from "@/lib/memberFiles";
 import MemberFiles from "./MemberFiles";
 
-type Params = { params: Promise<{ slug: string; committeeId: string; memberId: string }> };
+type Params = {
+  params: Promise<{ slug: string; committeeId: string; memberId: string }>;
+  searchParams: Promise<{ folder?: string }>;
+};
 
 export const metadata = { title: "Personal folder · MimiLuxx" };
 
 /** Level 3: one member's personal folder, with their files and attachments. */
-export default async function MemberFolderPage({ params }: Params) {
+export default async function MemberFolderPage({ params, searchParams }: Params) {
   const { slug, committeeId, memberId } = await params;
+  const { folder: folderParam } = await searchParams;
   const { supabase, org, access, committees, members } = await loadOrgContext(slug);
 
   const committee = committees.find((c) => c.id === committeeId);
@@ -26,12 +30,26 @@ export default async function MemberFolderPage({ params }: Params) {
     redirect(`/orgs/${org.slug}/folders/${committee.id}`);
   }
 
-  const { data, error } = await supabase
+  // All of this person's sub-folders (small), so the page can build the breadcrumb and children.
+  const foldersRes = await supabase
+    .from("member_folders")
+    .select("id, organization_id, owner_id, parent_id, name, created_by, created_at")
+    .eq("organization_id", org.id)
+    .eq("owner_id", owner.user_id)
+    .order("name", { ascending: true });
+  const folders = (foldersRes.data ?? []) as MemberFolder[];
+
+  // An unknown or stale ?folder= falls back to the top level instead of erroring.
+  const current = folders.find((f) => f.id === folderParam) ?? null;
+
+  let filesQuery = supabase
     .from("member_files")
-    .select("id, organization_id, owner_id, uploaded_by, path, file_name, mime_type, size_bytes, created_at")
+    .select("id, organization_id, owner_id, uploaded_by, path, file_name, mime_type, size_bytes, created_at, folder_id")
     .eq("organization_id", org.id)
     .eq("owner_id", owner.user_id)
     .order("created_at", { ascending: false });
+  filesQuery = current ? filesQuery.eq("folder_id", current.id) : filesQuery.is("folder_id", null);
+  const { data, error } = await filesQuery;
 
   const names: Record<string, string> = {};
   for (const m of members) names[m.user_id] = displayName(m);
@@ -57,9 +75,13 @@ export default async function MemberFolderPage({ params }: Params) {
         organizationId={org.id}
         ownerId={owner.user_id}
         currentUserId={access.userId}
+        basePath={`/orgs/${org.slug}/folders/${committee.id}/${owner.user_id}`}
+        rootLabel={mine ? "Your folder" : `${displayName(owner)}'s folder`}
+        folders={folders}
+        currentFolderId={current?.id ?? null}
         files={(data ?? []) as MemberFile[]}
         names={names}
-        loadError={error?.message ?? null}
+        loadError={error?.message ?? foldersRes.error?.message ?? null}
       />
     </PageFrame>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageFrame from "@/components/app_navigation/PageFrame";
 import FolderCard from "@/components/folders/FolderCard";
+import FolderSearch from "@/components/folders/FolderSearch";
 import { loadOrgContext } from "@/lib/orgFolders";
 import { canOpenCommittee } from "@/lib/orgAccess";
 
@@ -22,6 +23,10 @@ export default async function OrgFoldersPage({ params }: Params) {
       title={org.name}
       subtitle="Open a committee to see its members' folders. Locked committees are ones you aren't part of."
     >
+      <div className="mb-6">
+        <FolderSearch orgSlug={org.slug} placeholder={`Search in ${org.name}`} />
+      </div>
+
       {canManage && (
         <div className="mb-6">
           <Link

@@ -39,6 +39,7 @@ type TabId = (typeof TABS)[number]["id"];
 const NOTIF_ROWS = [
   { key: "task_updates", label: "Task updates", hint: "Assigned, due soon, approved or returned" },
   { key: "org_announcements", label: "Organization announcements", hint: "News from your organizations" },
+  { key: "folder_files", label: "Folder activity", hint: "A committee lead adds a file to your folder (in-app only for now)" },
 ] as const;
 const NOTIF_CHANNELS = [
   { key: "email", label: "Email" },
