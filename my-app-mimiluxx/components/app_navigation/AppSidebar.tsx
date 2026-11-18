@@ -4,7 +4,7 @@ import SidebarLogout from "@/app/dashboard/SidebarLogout";
 import SidebarProfile from "./SidebarProfile";
 import { isPanelAdmin } from "@/lib/types/roles";
 
-export type SidebarKey = "home" | "orgs" | "tasks" | "approvals" | "announcements" | "settings" | "admin";
+export type SidebarKey = "home" | "orgs" | "tasks" | "approvals" | "announcements" | "notifications" | "settings" | "admin";
 
 const ICONS = {
   home: "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
@@ -55,10 +55,27 @@ export default async function AppSidebar({ active }: { active?: SidebarKey }) {
       .map((s: string) => s[0]?.toUpperCase())
       .join("") || "ML";
 
-  const item = (key: SidebarKey, href: string, icon: string, label: string) => (
+  // Unread notifications. If 012_subfolders_notifications.sql hasn't been run, this errors and no badge shows.
+  const { count: unreadCount } = user
+    ? await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("read_at", null)
+    : { count: 0 };
+
+  const item = (key: SidebarKey, href: string, icon: string, label: string, badge = 0) => (
     <Link href={href} className={active === key ? current : idle} aria-current={active === key ? "page" : undefined}>
       <Icon path={icon} />
       <span>{label}</span>
+      {badge > 0 && (
+        <span
+          className="ml-auto rounded-full bg-[#E5252A] px-2 py-0.5 text-[11px] font-bold leading-none text-white"
+          aria-label={`${badge} unread`}
+        >
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 
@@ -72,6 +89,7 @@ export default async function AppSidebar({ active }: { active?: SidebarKey }) {
         {item("tasks", "/tasks", ICONS.file, "Task Page")}
         {item("approvals", "/approvals/overdue", ICONS.check, "Approvals")}
         {item("announcements", "/announcements", ICONS.bell, "Announcements")}
+        {item("notifications", "/notifications", ICONS.bell, "Notifications", unreadCount ?? 0)}
         {item("settings", "/settings", ICONS.settings, "Settings")}
         {isPanelAdmin(profile?.role) && item("admin", "/admin/users", ICONS.account, "Admin")}
 

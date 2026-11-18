@@ -338,14 +338,26 @@ export default async function DashboardPage({ searchParams }: Props) {
         {/* SEARCH & CONTROLS BAR */}
         <div className="mb-10 flex w-full flex-wrap items-center justify-between gap-4 lg:pl-[17rem] lg:pr-4">
           <div className="flex items-center gap-4">
-            <div className="relative flex h-[44px] w-full max-w-[380px] items-center rounded-full border border-[#232323] bg-white px-5 sm:w-[380px]">
+            <form
+              action="/search"
+              method="get"
+              role="search"
+              className="relative flex h-[44px] w-full max-w-[380px] items-center rounded-full border border-[#232323] bg-white px-5 sm:w-[380px]"
+            >
+              <label htmlFor="dashboard-search" className="sr-only">
+                Search folders and files
+              </label>
               <input
-                type="text"
-                placeholder="Search..."
+                id="dashboard-search"
+                type="search"
+                name="q"
+                minLength={2}
+                maxLength={60}
+                placeholder="Search folders and files…"
                 className="w-full bg-transparent pr-7 text-[14px] text-[#111111] placeholder-[#767676] outline-none"
               />
               <button
-                type="button"
+                type="submit"
                 title="Search"
                 className="absolute right-4 text-[#232323] transition-colors hover:text-[#E5252A]"
               >
@@ -354,7 +366,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </button>
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-3">
