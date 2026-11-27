@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { siteUrl } from "@/lib/siteUrl";
 import { ORG_ASSIGNABLE_ROLES, type UserRole } from "@/lib/types/roles";
 import type { OrgActionResult } from "@/lib/types/admin";
 
@@ -48,15 +48,6 @@ async function requireOrgManager(organizationId: string) {
 
 function refresh() {
   revalidatePath("/orgs/[slug]/manage", "page");
-}
-
-async function siteUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
 }
 
 // ------------------------------------------------------------- committees --

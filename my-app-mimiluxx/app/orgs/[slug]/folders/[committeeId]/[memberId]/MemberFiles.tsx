@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { emailFolderUpload } from "@/app/actions/notify";
 import { ACCEPT, LIMITS_HINT } from "@/lib/attachments";
 import {
   MAX_FOLDER_NAME,
@@ -79,17 +80,19 @@ export default function MemberFiles({
     setNotice(null);
     const supabase = createClient();
     const failures: string[] = [];
+    const uploadedIds: string[] = [];
     let added = 0;
 
     for (const file of picked) {
       try {
-        await uploadMemberFile(supabase, {
+        const saved = await uploadMemberFile(supabase, {
           organizationId,
           ownerId,
           uploadedBy: currentUserId,
           folderId: currentFolderId,
           file,
         });
+        uploadedIds.push(saved.id);
         added += 1;
       } catch (e) {
         failures.push(e instanceof Error ? e.message : `${file.name}: could not upload.`);
@@ -101,6 +104,10 @@ export default function MemberFiles({
       setNotice({ type: "error", text: failures.join(" ") });
     } else {
       setNotice({ type: "success", text: added === 1 ? "File added." : `${added} files added.` });
+    }
+    // Adding to someone else's folder: email them once for the whole batch. Never blocks or fails the upload.
+    if (uploadedIds.length > 0 && ownerId !== currentUserId) {
+      emailFolderUpload(uploadedIds.slice(0, 20)).catch(() => {});
     }
     if (added > 0) router.refresh();
   }
