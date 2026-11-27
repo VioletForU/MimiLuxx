@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/authErrors";
+import { safeNextPath } from "@/lib/auth/routes";
 import AuthShell from "@/components/auth/AuthShell";
 import { FormAlert, PasswordField, SubmitButton, TextField } from "@/components/auth/fields";
 
@@ -64,7 +65,9 @@ export default function LoginPage() {
     }
 
     // Stay in the loading state until the navigation completes.
-    router.push("/dashboard");
+    // Go back to the page they originally asked for (same-site paths only).
+    const next = safeNextPath(new URLSearchParams(window.location.search).get("next"));
+    router.push(next);
     router.refresh();
   }
 

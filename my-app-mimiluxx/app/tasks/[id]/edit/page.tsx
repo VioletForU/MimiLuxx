@@ -1,9 +1,12 @@
 import PageFrame from "@/components/app_navigation/PageFrame";
 import EditTaskForm from "./EditTaskForm";
+import { requireUser } from "@/lib/supabase/requireUser";
 
 export const metadata = { title: "Edit Task · MimiLuxx" };
 
-export default function EditTaskPage() {
+export default async function EditTaskPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await requireUser(`/tasks/${id}/edit`);
   return (
     <PageFrame
       active="tasks"

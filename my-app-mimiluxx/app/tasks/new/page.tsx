@@ -1,9 +1,11 @@
 import PageFrame from "@/components/app_navigation/PageFrame";
 import NewTaskForm from "./NewTaskForm";
+import { requireUser } from "@/lib/supabase/requireUser";
 
 export const metadata = { title: "New Task · MimiLuxx" };
 
-export default function NewTaskPage() {
+export default async function NewTaskPage() {
+  await requireUser("/tasks/new");
   return (
     <PageFrame
       active="tasks"
