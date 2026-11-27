@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { APPROVAL_CHAIN, ROLE_LABELS } from "@/lib/types/roles";
+import { getApprovalChain, ROLE_LABELS } from "@/lib/types/roles";
 
 function Spinner() {
   return (
@@ -20,7 +20,8 @@ function stageNote(index: number, total: number) {
   return "Reviews next";
 }
 
-export default function NewProposalForm() {
+export default function NewProposalForm({ submitterRole }: { submitterRole: string | null }) {
+  const APPROVAL_CHAIN = getApprovalChain(submitterRole);
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
