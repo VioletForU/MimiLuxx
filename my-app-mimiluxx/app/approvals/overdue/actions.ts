@@ -38,6 +38,12 @@ export async function saveLimits(limits: ApprovalLimit[]): Promise<ActionResult>
 }
 
 export async function runCheckNow(): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not logged in." };
+
   revalidatePath("/approvals/overdue");
   return { ok: true };
 }
