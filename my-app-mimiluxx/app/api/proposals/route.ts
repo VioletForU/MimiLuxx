@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { APPROVAL_CHAIN } from "@/lib/types/roles";
+import { getApprovalChain } from "@/lib/types/roles";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -20,6 +20,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
+  // The approval chain depends on who is submitting (e.g. a Committee Head's
+  // proposal skips the Committee Head stage and goes straight to the President).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const chain = getApprovalChain(profile?.role);
+
   const { data: proposal, error: proposalError } = await supabase
     .from("proposals")
     .insert({
@@ -37,9 +47,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Auto-generate the approval chain (see APPROVAL_CHAIN in lib/types/roles.ts).
+  // Auto-generate the approval chain (see getApprovalChain in lib/types/roles.ts).
   const { error: stagesError } = await supabase.from("approval_stages").insert(
-    APPROVAL_CHAIN.map((stage) => ({ proposal_id: proposal.id, ...stage }))
+    chain.map((stage) => ({ proposal_id: proposal.id, ...stage }))
   );
 
   if (stagesError) {

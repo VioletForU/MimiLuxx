@@ -1,9 +1,25 @@
 import PageFrame from "@/components/app_navigation/PageFrame";
+import { createClient } from "@/lib/supabase/server";
 import NewProposalForm from "./NewProposalForm";
 
 export const metadata = { title: "Submit Proposal · MimiLuxx" };
 
-export default function NewProposalPage() {
+export default async function NewProposalPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    role = profile?.role ?? null;
+  }
+
   return (
     <PageFrame
       active="home"
@@ -13,7 +29,7 @@ export default function NewProposalPage() {
       backHref="/dashboard?tab=proposals"
       backLabel="Back to proposals"
     >
-      <NewProposalForm />
+      <NewProposalForm submitterRole={role} />
     </PageFrame>
   );
 }

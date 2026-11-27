@@ -69,11 +69,41 @@ export const ORG_CREATOR_ROLES: UserRole[] = ["Admin", "President", "Adviser"];
 export const MAX_ORGANIZATIONS_PER_CREATOR = 2;
 export const MAX_COMMITTEES_PER_ORGANIZATION = 10;
 
-/** Who signs off each stage of a proposal, in order. */
+/** Who signs off each stage of a proposal, in order (the full, default chain). */
 export const APPROVAL_CHAIN: { stage_order: number; approver_role: UserRole }[] = [
   { stage_order: 1, approver_role: "Committee Head" },
   { stage_order: 2, approver_role: "President" },
 ];
+
+/**
+ * Which roles must sign off, in order, for a proposal submitted by each role.
+ * A submitter never reviews their own proposal, and stages for roles at or
+ * below the submitter are skipped. Edit this map to change the routing.
+ *
+ *   Member          -> Committee Head -> President
+ *   Committee Head  -> President
+ *   VP / Secretary  -> President
+ *   President       -> Adviser
+ *   Adviser / Admin -> President
+ */
+const APPROVERS_BY_SUBMITTER: Record<UserRole, UserRole[]> = {
+  Member: ["Committee Head", "President"],
+  "Committee Head": ["President"],
+  Secretary: ["President"],
+  "Vice President": ["President"],
+  President: ["Adviser"],
+  Adviser: ["President"],
+  Admin: ["President"],
+};
+
+/** Approval stages (numbered from 1) for a proposal submitted by `submitterRole`. */
+export function getApprovalChain(
+  submitterRole: string | null | undefined
+): { stage_order: number; approver_role: UserRole }[] {
+  const roles =
+    APPROVERS_BY_SUBMITTER[submitterRole as UserRole] ?? APPROVERS_BY_SUBMITTER.Member;
+  return roles.map((approver_role, i) => ({ stage_order: i + 1, approver_role }));
+}
 
 export function isAdminRole(role: string | null | undefined): boolean {
   return !!role && (ADMIN_ROLES as string[]).includes(role);
