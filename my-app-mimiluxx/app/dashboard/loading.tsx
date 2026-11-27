@@ -1,5 +1,7 @@
+import TopProgressBar from "@/components/loading/TopProgressBar";
+
 export default function DashboardLoading() {
-  const bar = "animate-pulse rounded-xl bg-[#ECECEF]";
+  const bar = "animate-pulse rounded-xl bg-[#ECECEF] motion-reduce:animate-none";
   return (
     <div className="min-h-screen bg-[#EEF0F4] px-3 py-4 sm:px-6 sm:py-6" role="status" aria-label="Loading dashboard">
       <div className="mx-auto w-full max-w-[1440px] rounded-[28px] bg-white px-5 pb-12 pt-6 shadow-[0_25px_60px_rgba(16,16,28,0.10)] sm:px-8 lg:px-12">
@@ -27,6 +29,7 @@ export default function DashboardLoading() {
           </div>
         </div>
       </div>
+      <TopProgressBar />
       <span className="sr-only">Loading…</span>
     </div>
   );

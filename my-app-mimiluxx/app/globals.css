@@ -56,6 +56,17 @@
   animation: pop-in 0.7s var(--ease-pop) 0.2s backwards;
 }
 
+/* Time-boxed loading bar: fills to 90% over the duration set inline
+   (see components/loading/loadingConfig.ts), then holds until the page renders. */
+@keyframes loader-fill {
+  from { width: 0%; }
+  to   { width: 90%; }
+}
+.loader-fill {
+  width: 0%;
+  animation: loader-fill 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* -------------------------------------------------------------------------
    3. Scrollbars
    ------------------------------------------------------------------------- */
@@ -78,6 +89,8 @@
   .reveal-pop,
   dialog[open],
   .toast { animation: none !important; }
+
+  .loader-fill { animation: none !important; width: 60%; }
 
   * { transition-duration: 0.01ms !important; }
 }
