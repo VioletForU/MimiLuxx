@@ -216,7 +216,7 @@ export default function TaskBoard({
                 {query
                   ? "No tasks match your search."
                   : tab === "pending"
-                    ? "Nothing pending — you&apos;re all caught up."
+                    ? "Nothing pending — you're all caught up."
                     : tab === "submitted"
                       ? "Nothing submitted yet."
                       : "No missed tasks."}
