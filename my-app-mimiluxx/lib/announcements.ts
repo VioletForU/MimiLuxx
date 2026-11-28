@@ -2,15 +2,26 @@ export type Announcement = {
   id: string;
   title: string;
   body: string;
-  audience: string;
+  /** Who it is for: everyone in the app (Admin only), one organization, or chosen committees of one organization. */
+  scope: AnnouncementScope;
+  organization_id: string | null;
   priority: "critical" | "high" | "normal";
   pinned: boolean;
   enabled: boolean;
   is_draft: boolean;
   starts_at: string | null;
   expires_at: string | null;
+  created_by: string;
   created_at: string;
+  /** Present when loaded with  select("*, announcement_committees(committee_id)") */
+  announcement_committees?: { committee_id: string }[];
 };
+
+export type AnnouncementScope = "app" | "org" | "committees";
+
+export function committeeIdsOf(a: Pick<Announcement, "announcement_committees">): string[] {
+  return (a.announcement_committees ?? []).map((c) => c.committee_id);
+}
 
 export type AnnouncementStatus = "active" | "scheduled" | "disabled" | "draft" | "expired";
 
@@ -34,13 +45,20 @@ export function sortAnnouncements(list: Announcement[]): Announcement[] {
   );
 }
 
-/** Which audiences a role may see. */
-export function visibleTo(a: Announcement, role: string): boolean {
-  if (role === "Admin") return true;
-  if (a.audience === "All members") return true;
-  if (a.audience === "Committee Heads") return role === "Committee Head" || role === "President" || role === "Adviser";
-  if (a.audience === "Presidents") return role === "President" || role === "Adviser";
-  return true;
+/**
+ * Who sees what is decided by the database (row-level security in 014_announcement_scopes.sql),
+ * so the lists simply show what the database returns. This only builds the label for the card.
+ */
+export function targetLabel(
+  a: Pick<Announcement, "scope" | "organization_id" | "announcement_committees">,
+  orgNames: Record<string, string>,
+  committeeNames: Record<string, string>
+): string {
+  if (a.scope === "app") return "Everyone in the app";
+  const org = (a.organization_id && orgNames[a.organization_id]) || "Organization";
+  if (a.scope === "org") return `${org} · whole organization`;
+  const names = committeeIdsOf(a).map((id) => committeeNames[id]).filter(Boolean);
+  return `${org} · ${names.length ? names.join(", ") : "committees"}`;
 }
 
 /* ───────────── Shared with the form AND the server actions ─────────────
@@ -48,10 +66,11 @@ export function visibleTo(a: Announcement, role: string): boolean {
    (validation, Philippine-time handling, "when" text). */
 
 export const TZ = "Asia/Manila";
-export const AUDIENCES = ["All members", "Committee Heads", "Presidents"] as const;
+export const SCOPES = ["app", "org", "committees"] as const;
+export const MAX_TARGET_COMMITTEES = 10;
 export const PRIORITIES = ["critical", "high", "normal"] as const;
 export const LIMITS = { titleMin: 3, titleMax: 80, bodyMin: 10, bodyMax: 500 } as const;
-export const ANNOUNCEMENT_GONE = "That announcement no longer exists.";
+export const ANNOUNCEMENT_GONE = "That announcement no longer exists, or you are not allowed to change it.";
 
 const LOCAL_DT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
@@ -101,13 +120,15 @@ export function whenText(a: Pick<Announcement, "starts_at" | "expires_at">, now:
   return "No dates set";
 }
 
-export type AnnouncementField = "title" | "body" | "audience" | "priority" | "dates";
+export type AnnouncementField = "title" | "body" | "target" | "priority" | "dates";
 export type AnnouncementErrors = Partial<Record<AnnouncementField, string>>;
 
 export type AnnouncementValues = {
   title: string;
   body: string;
-  audience: string;
+  scope: string;
+  organizationId: string | null;
+  committeeIds: string[];
   priority: string;
   /** ISO strings (or null) */
   startsAt: string | null;
@@ -138,7 +159,11 @@ export function validateAnnouncement(
   else if (!clean.body) errors.body = draft ? "Add at least a few words, even for a draft." : "Write the message members will read.";
   else if (!draft && clean.body.length < LIMITS.bodyMin) errors.body = `Message needs at least ${LIMITS.bodyMin} characters.`;
 
-  if (!(AUDIENCES as readonly string[]).includes(clean.audience)) errors.audience = "Pick who should see this.";
+  if (!(SCOPES as readonly string[]).includes(clean.scope)) errors.target = "Pick who should see this.";
+  else if (clean.scope !== "app" && !clean.organizationId) errors.target = "Pick an organization.";
+  else if (clean.scope === "committees" && clean.committeeIds.length === 0) errors.target = "Pick at least one committee.";
+  else if (clean.scope === "committees" && clean.committeeIds.length > MAX_TARGET_COMMITTEES)
+    errors.target = `Pick at most ${MAX_TARGET_COMMITTEES} committees.`;
   if (!(PRIORITIES as readonly string[]).includes(clean.priority)) errors.priority = "Pick a priority.";
 
   const s = clean.startsAt ? Date.parse(clean.startsAt) : null;

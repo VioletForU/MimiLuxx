@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRole } from "@/lib/types/roles";
-import { sortAnnouncements, visibleTo, type Announcement } from "@/lib/announcements";
+import { sortAnnouncements, type Announcement } from "@/lib/announcements";
+import { getAnnouncerContext } from "@/lib/announcementAccess";
 import AnnouncementsManager from "./AnnouncementsManager";
 
 export const dynamic = "force-dynamic";
@@ -21,14 +21,26 @@ export default async function AnnouncementsPage() {
     );
   }
 
-  const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  const role = me?.role ?? "Member";
-  const admin = isAdminRole(role);
+  const ctx = await getAnnouncerContext(supabase, user.id);
 
-  const { data, error } = await supabase.from("announcements").select("*");
+  // The database only returns announcements this person is meant to see (014_announcement_scopes.sql).
+  const [{ data, error }, { data: orgRows }, { data: committeeRows }] = await Promise.all([
+    supabase.from("announcements").select("*, announcement_committees(committee_id)"),
+    supabase.from("organizations").select("id, name"),
+    supabase.from("committees").select("id, name"),
+  ]);
   const all = sortAnnouncements((data ?? []) as Announcement[]);
-  // Members only ever see published, enabled items meant for them; admins see everything.
-  const list = admin ? all : all.filter((a) => !a.is_draft && a.enabled && visibleTo(a, role));
+
+  // Who may edit what: Admins everything, org leadership their org's, everyone else only their own.
+  const editableIds = all
+    .filter((a) => ctx.isAdmin || (a.scope !== "app" && (a.created_by === user.id || (!!a.organization_id && ctx.leadOrgIds.includes(a.organization_id)))))
+    .map((a) => a.id);
+  const editable = new Set(editableIds);
+  // Drafts and switched-off items are only shown to the people who can edit them.
+  const list = all.filter((a) => editable.has(a.id) || (!a.is_draft && a.enabled));
+
+  const orgNames = Object.fromEntries((orgRows ?? []).map((o) => [o.id as string, o.name as string]));
+  const committeeNames = Object.fromEntries((committeeRows ?? []).map((c) => [c.id as string, c.name as string]));
 
   return (
     <div className="min-h-screen bg-white text-ink">
@@ -48,15 +60,28 @@ export default async function AnnouncementsPage() {
         <div>
           <h1 className="text-2xl font-extrabold sm:text-3xl">Flagged announcements</h1>
           <p className="mt-1 text-sm text-ink/60">
-            {admin ? "Create important announcements and control who sees them, and until when." : "Important announcements from your officers."}
+            {ctx.isAdmin
+              ? "Announce to everyone in the app, a whole organization, or chosen committees, and control until when."
+              : ctx.canPost
+                ? "Announce to your organization or committees, and control until when."
+                : "Important announcements from your officers."}
           </p>
         </div>
         {error && (
           <p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-            Could not load announcements: {error.message}. If the table is missing, run <code>supabase/migrations/003_integration_tables.sql</code>.
+            Could not load announcements: {error.message}. If the table is missing, run <code>supabase/migrations/003_integration_tables.sql</code> and <code>014_announcement_scopes.sql</code>.
           </p>
         )}
-        <AnnouncementsManager announcements={list} canManage={admin} nowIso={new Date().toISOString()} />
+        <AnnouncementsManager
+          announcements={list}
+          canManage={ctx.canPost}
+          isAdmin={ctx.isAdmin}
+          targets={ctx.targets}
+          editableIds={editableIds}
+          orgNames={orgNames}
+          committeeNames={committeeNames}
+          nowIso={new Date().toISOString()}
+        />
       </main>
     </div>
   );

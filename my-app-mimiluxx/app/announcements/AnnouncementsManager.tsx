@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ANNOUNCEMENT_GONE,
-  AUDIENCES,
   LIMITS,
+  MAX_TARGET_COMMITTEES,
   isoToManilaLocal,
   manilaLocalToIso,
+  committeeIdsOf,
   statusOf,
+  targetLabel,
   validateAnnouncement,
   whenText,
   type Announcement,
@@ -15,6 +17,7 @@ import {
   type AnnouncementStatus,
 } from "@/lib/announcements";
 import type { ActionResult } from "@/lib/types/admin";
+import type { PostTarget } from "@/lib/announcementAccess";
 import { createAnnouncement, deleteAnnouncement, editAnnouncement, restoreAnnouncement, updateAnnouncement } from "./actions";
 import ConfirmDialog, { type ConfirmRequest } from "./ConfirmDialog";
 
@@ -42,7 +45,7 @@ const STATUS_BADGE: Record<AnnouncementStatus, string> = {
 const FIELD_FOCUS_ID: Record<AnnouncementField, string> = {
   title: "a-title",
   body: "a-body",
-  audience: "a-aud",
+  target: "a-org",
   priority: "a-prio-critical",
   dates: "a-start",
 };
@@ -50,13 +53,32 @@ const FIELD_FOCUS_ID: Record<AnnouncementField, string> = {
 type FormState = {
   title: string;
   body: string;
-  audience: string;
+  /** "app" (everyone, Admin only) or an organization id; "" until picked */
+  target: string;
+  /** inside an organization: the whole thing, or chosen committees */
+  mode: "org" | "committees";
+  committeeIds: string[];
   priority: "critical" | "high" | "normal";
   enabled: boolean;
   startsAt: string; // datetime-local value, Philippine time
   expiresAt: string;
 };
-const EMPTY: FormState = { title: "", body: "", audience: AUDIENCES[0], priority: "normal", enabled: true, startsAt: "", expiresAt: "" };
+
+/** A fresh form. With only one place to post (a Committee Head's own organization) it is already filled in. */
+function emptyForm(targets: PostTarget[], isAdmin: boolean): FormState {
+  const only = !isAdmin && targets.length === 1 ? targets[0] : null;
+  return {
+    title: "",
+    body: "",
+    target: only?.orgId ?? "",
+    mode: only ? (only.canOrgWide ? "org" : "committees") : "org",
+    committeeIds: only && !only.canOrgWide && only.committees.length === 1 ? [only.committees[0].id] : [],
+    priority: "normal",
+    enabled: true,
+    startsAt: "",
+    expiresAt: "",
+  };
+}
 
 type Toast = { id: number; text: string; kind: "ok" | "error"; action?: { label: string; run: () => void } };
 
@@ -76,10 +98,22 @@ function FieldError({ id, msg }: { id: string; msg?: string }) {
 export default function AnnouncementsManager({
   announcements,
   canManage,
+  isAdmin,
+  targets,
+  editableIds,
+  orgNames,
+  committeeNames,
   nowIso,
 }: {
   announcements: Announcement[];
   canManage: boolean;
+  isAdmin: boolean;
+  /** Where this person may post, and what they can pick there. */
+  targets: PostTarget[];
+  /** Announcements this person may edit or delete. */
+  editableIds: string[];
+  orgNames: Record<string, string>;
+  committeeNames: Record<string, string>;
   nowIso: string;
 }) {
   // Status is computed from the clock, so a scheduled item turns Active (or Expired) without a reload.
@@ -92,7 +126,9 @@ export default function AnnouncementsManager({
   const now = Math.max(clock, serverNow);
 
   const [filter, setFilter] = useState<"all" | AnnouncementStatus>("all");
-  const [form, setForm] = useState<FormState>(EMPTY);
+  const [form, setForm] = useState<FormState>(() => emptyForm(targets, isAdmin));
+  const editable = useMemo(() => new Set(editableIds), [editableIds]);
+  const pickedOrg = targets.find((t) => t.orgId === form.target) ?? null;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [attempted, setAttempted] = useState(false); // after the first failed submit we validate live
   const [lastDraft, setLastDraft] = useState(false);
@@ -130,10 +166,13 @@ export default function AnnouncementsManager({
   }, [withStatus]);
   const shown = filter === "all" ? withStatus : withStatus.filter((x) => x.st === filter);
 
+  const scopeOf = (): "app" | "org" | "committees" => (form.target === "app" ? "app" : form.mode);
   const values = () => ({
     title: form.title,
     body: form.body,
-    audience: form.audience,
+    scope: form.target ? scopeOf() : "",
+    organizationId: form.target && form.target !== "app" ? form.target : null,
+    committeeIds: form.committeeIds,
     priority: form.priority,
     startsAt: manilaLocalToIso(form.startsAt),
     expiresAt: manilaLocalToIso(form.expiresAt),
@@ -146,7 +185,7 @@ export default function AnnouncementsManager({
 
   function resetForm() {
     setEditingId(null);
-    setForm(EMPTY);
+    setForm(emptyForm(targets, isAdmin));
     setAttempted(false);
     setFormError("");
   }
@@ -156,7 +195,9 @@ export default function AnnouncementsManager({
     setForm({
       title: a.title,
       body: a.body,
-      audience: a.audience,
+      target: a.scope === "app" ? "app" : a.organization_id ?? "",
+      mode: a.scope === "committees" ? "committees" : "org",
+      committeeIds: committeeIdsOf(a),
       priority: a.priority,
       enabled: a.enabled,
       startsAt: isoToManilaLocal(a.starts_at),
@@ -187,7 +228,9 @@ export default function AnnouncementsManager({
     const input = {
       title: clean.title,
       body: clean.body,
-      audience: form.audience,
+      scope: scopeOf(),
+      organization_id: form.target === "app" ? null : form.target,
+      committee_ids: scopeOf() === "committees" ? form.committeeIds : [],
       priority: form.priority,
       enabled: form.enabled,
       is_draft: draft,
@@ -250,7 +293,16 @@ export default function AnnouncementsManager({
   function publishDraft(a: Announcement) {
     // Publishing needs a complete message, so check first and send them to the form if it is not.
     const { errors: errs } = validateAnnouncement(
-      { title: a.title, body: a.body, audience: a.audience, priority: a.priority, startsAt: a.starts_at, expiresAt: a.expires_at },
+      {
+        title: a.title,
+        body: a.body,
+        scope: a.scope,
+        organizationId: a.organization_id,
+        committeeIds: committeeIdsOf(a),
+        priority: a.priority,
+        startsAt: a.starts_at,
+        expiresAt: a.expires_at,
+      },
       { draft: false, checkFuture: false, now }
     );
     if (errs.title || errs.body) {
@@ -335,20 +387,83 @@ export default function AnnouncementsManager({
               <FieldError id="err-body" msg={errors.body} />
               <p className="mt-1 text-right text-xs text-ink/50">{form.body.length}/{LIMITS.bodyMax}</p>
             </div>
-            <div>
-              <label htmlFor="a-aud" className={labelCls}>Who should see it?</label>
+            <fieldset className="grid gap-3" aria-describedby={errors.target ? "err-target" : undefined}>
+              <legend className={labelCls}>Who should see it?</legend>
               <select
-                id="a-aud"
-                value={form.audience}
-                onChange={(e) => set("audience", e.target.value)}
-                aria-invalid={errors.audience ? true : undefined}
-                aria-describedby={errors.audience ? "err-aud" : undefined}
+                id="a-org"
+                aria-label="Audience"
+                value={form.target}
+                onChange={(e) => {
+                  const next = targets.find((t) => t.orgId === e.target.value);
+                  setForm((f) => ({
+                    ...f,
+                    target: e.target.value,
+                    // switching organization clears the committee picks; a Committee Head gets their one committee back
+                    mode: next ? (next.canOrgWide ? "org" : "committees") : f.mode,
+                    committeeIds: next && !next.canOrgWide && next.committees.length === 1 ? [next.committees[0].id] : [],
+                  }));
+                }}
+                aria-invalid={errors.target ? true : undefined}
                 className={`h-10 ${inputCls} px-2`}
               >
-                {AUDIENCES.map((a) => <option key={a}>{a}</option>)}
+                <option value="">Choose…</option>
+                {isAdmin && <option value="app">Everyone in the app (Admin only)</option>}
+                {targets.map((t) => (
+                  <option key={t.orgId} value={t.orgId}>{t.orgName}</option>
+                ))}
+                {/* an organization this person may no longer post in, while editing an old item */}
+                {editingItem?.organization_id && !targets.some((t) => t.orgId === editingItem.organization_id) && (
+                  <option value={editingItem.organization_id}>{orgNames[editingItem.organization_id] ?? "Organization"}</option>
+                )}
               </select>
-              <FieldError id="err-aud" msg={errors.audience} />
-            </div>
+
+              {form.target === "app" && (
+                <p className="rounded-lg bg-yellow-50 p-3 text-xs font-bold text-yellow-900">
+                  This goes to every registered user in every organization.
+                </p>
+              )}
+
+              {form.target && form.target !== "app" && (
+                <div className="grid gap-2">
+                  {pickedOrg?.canOrgWide !== false && (
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Whole organization or committees">
+                      {([["org", "Whole organization"], ["committees", "Specific committees"]] as const).map(([m, label]) => (
+                        <label key={m} className={`flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-center text-xs font-bold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${form.mode === m ? "border-ink bg-ink text-white" : "border-ink/25"}`}>
+                          <input type="radio" name="mode" value={m} checked={form.mode === m} onChange={() => set("mode", m)} className="sr-only" />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {form.mode === "committees" && (
+                    <div className="grid gap-1.5 rounded-lg border border-ink/15 p-3" role="group" aria-label="Committees">
+                      {(pickedOrg?.committees ?? []).length === 0 ? (
+                        <p className="text-xs text-ink/60">No committees to pick in this organization.</p>
+                      ) : (
+                        <>
+                          {(pickedOrg?.committees ?? []).map((c) => (
+                            <label key={c.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={form.committeeIds.includes(c.id)}
+                                disabled={!form.committeeIds.includes(c.id) && form.committeeIds.length >= MAX_TARGET_COMMITTEES}
+                                onChange={(e) => set("committeeIds", e.target.checked ? [...form.committeeIds, c.id] : form.committeeIds.filter((x) => x !== c.id))}
+                              />
+                              {c.name}
+                            </label>
+                          ))}
+                          {pickedOrg && !pickedOrg.canOrgWide && (
+                            <p className="text-xs text-ink/50">Committee Heads can announce to their own committee.</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              <FieldError id="err-target" msg={errors.target} />
+            </fieldset>
             <fieldset aria-describedby={errors.priority ? "err-prio" : undefined}>
               <legend className="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink/70">Priority</legend>
               <div className="grid grid-cols-3 gap-2">
@@ -404,7 +519,7 @@ export default function AnnouncementsManager({
       <section className="min-w-0" aria-labelledby="list-title">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="list-title" className="text-lg font-extrabold">
-            {canManage ? "All flagged items" : "Announcements"} <span className="ml-1 text-sm font-bold text-ink/50">{counts.all}</span>
+            Announcements <span className="ml-1 text-sm font-bold text-ink/50">{counts.all}</span>
           </h2>
           {canManage && (
             <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
@@ -447,12 +562,12 @@ export default function AnnouncementsManager({
                     {a.pinned && <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-bold text-white">📌 Pinned</span>}
                     <span className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${PRIO_BADGE[a.priority]}`}>{a.priority}</span>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${STATUS_BADGE[st]}`}>{st === "active" ? "Active flag" : st}</span>
-                    <span className="text-xs text-ink/50">{a.audience}</span>
+                    <span className="text-xs text-ink/50">{targetLabel(a, orgNames, committeeNames)}</span>
                   </div>
                   <h3 className="mt-2 text-base font-extrabold">{a.title}</h3>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-ink/80">{a.body}</p>
                   <p className="mt-2 text-xs text-ink/50">{whenText(a, now)}</p>
-                  {canManage && (
+                  {canManage && editable.has(a.id) && (
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                       <button disabled={isBusy} onClick={() => startEdit(a)} aria-label={`Edit ${a.title}`} className="rounded-full border border-ink/25 px-3 py-1.5 hover:bg-neutral-100 disabled:opacity-50">Edit</button>
                       <button disabled={isBusy} onClick={() => void mutate(a.id, () => updateAnnouncement(a.id, { pinned: !a.pinned }), a.pinned ? "Unpinned." : "Pinned to top.")} className="rounded-full border border-ink/25 px-3 py-1.5 hover:bg-neutral-100 disabled:opacity-50">{a.pinned ? "Unpin" : "Pin"}</button>
