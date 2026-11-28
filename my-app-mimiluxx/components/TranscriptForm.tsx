@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { DetectedItem } from "@/lib/ideaDetection";
 import {
   hasAllowedExtension,
   MAX_TRANSCRIPT_BYTES,
@@ -11,7 +12,8 @@ export default function TranscriptForm({ slug }: { slug: string }) {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [items, setItems] = useState<DetectedItem[] | null>(null);
+  const [aiFailed, setAiFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +37,8 @@ export default function TranscriptForm({ slug }: { slug: string }) {
 
   async function onSubmit() {
     setError(null);
-    setResult(null);
+    setItems(null);
+    setAiFailed(false);
 
     if (!file && text.trim().length < MIN_TRANSCRIPT_CHARS) {
       setError("Paste a transcript or choose a file first.");
@@ -53,9 +56,10 @@ export default function TranscriptForm({ slug }: { slug: string }) {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Something went wrong.");
+        setAiFailed(res.status === 502);
         return;
       }
-      setResult(`Transcript accepted (${data.text.length} characters).`);
+      setItems(data.items);
     } catch {
       setError("Could not reach the server. Please try again.");
     } finally {
@@ -78,10 +82,23 @@ export default function TranscriptForm({ slug }: { slug: string }) {
           {error}
         </p>
       )}
-      {result && (
-        <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          {result}
-        </p>
+
+      {items && items.length === 0 && (
+        <p className="rounded-xl bg-[#F6F6F6] px-4 py-3 text-sm">No action items were found.</p>
+      )}
+      {items && items.length > 0 && (
+        <ul className="space-y-3">
+          {items.map((it, i) => (
+            <li key={i} className="rounded-2xl border border-black/10 p-4 text-sm">
+              <p className="font-bold">{it.title}</p>
+              <p className="mt-1 text-[#555]">{it.description}</p>
+              <p className="mt-2 text-xs text-[#6b6b6b]">
+                Priority: {it.priority} · Assignee: {it.assignee ?? "Not determined"} · Deadline:{" "}
+                {it.deadline ?? "None"}
+              </p>
+            </li>
+          ))}
+        </ul>
       )}
 
       <label className="block text-sm font-bold">
@@ -96,7 +113,7 @@ export default function TranscriptForm({ slug }: { slug: string }) {
         />
       </label>
 
-            <div>
+      <div>
         <p className="text-sm font-bold">Or upload a file (.txt or .md, max 200 KB)</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <label className="cursor-pointer rounded-full border border-black/20 bg-white px-4 py-2 text-sm font-bold hover:bg-[#F6F6F6] focus-within:ring-2 focus-within:ring-[#f25c05]">
@@ -131,7 +148,7 @@ export default function TranscriptForm({ slug }: { slug: string }) {
         disabled={loading}
         className="rounded-full bg-[#f25c05] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
       >
-        {loading ? "Submitting…" : "Submit transcript"}
+        {loading ? "Analyzing…" : aiFailed ? "Retry" : "Submit transcript"}
       </button>
     </div>
   );

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { detectIdeas } from "@/lib/ideaDetection";
 import {
   canSubmitTranscript,
   hasAllowedExtension,
@@ -95,5 +96,21 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ text });
+  const [{ data: committees }, { data: roster }] = await Promise.all([
+    supabase.from("committees").select("name").eq("organization_id", org.id),
+    supabase.rpc("get_org_members", { p_org: org.id }),
+  ]);
+
+  const committeeNames = (committees ?? []).map((c) => c.name as string);
+  // Names only. Never send emails or IDs to the AI.
+  const memberNames = ((roster ?? []) as { full_name: string | null; username: string | null }[])
+    .map((m) => m.full_name || m.username)
+    .filter((n): n is string => !!n && !n.includes("@"));
+
+  const { items, error } = await detectIdeas({ text, committeeNames, memberNames });
+  if (error) {
+    return NextResponse.json({ error }, { status: 502 });
+  }
+
+  return NextResponse.json({ items });
 }
