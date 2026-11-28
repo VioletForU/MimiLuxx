@@ -5,7 +5,7 @@ import { routeStages } from "@/lib/stageRouting";
 import type { Proposal, ApprovalStage } from "@/lib/types/proposal";
 import ProposalsPanel, { type ProposalRow } from "./ProposalsPanel";
 import AppSidebar from "@/components/app_navigation/AppSidebar";
-import { sortAnnouncements, statusOf, visibleTo, type Announcement } from "@/lib/announcements";
+import { sortAnnouncements, statusOf, type Announcement } from "@/lib/announcements";
 
 type Props = { searchParams: Promise<{ tab?: string }> };
 
@@ -310,7 +310,8 @@ export default async function DashboardPage({ searchParams }: Props) {
     .eq("is_draft", false);
   const nowMs = currentTime();
   const banners = sortAnnouncements((flagged ?? []) as Announcement[])
-    .filter((a) => statusOf(a, nowMs) === "active" && visibleTo(a, profile?.role ?? "Member"))
+    // The database only returns announcements meant for this person (see 014_announcement_scopes.sql).
+    .filter((a) => statusOf(a, nowMs) === "active")
     .slice(0, 2);
 
   return (
